@@ -75,5 +75,27 @@ export class WebsiteDeploymentConstruct extends cdk.Stack {
                 }
             }
         });
+
+        /** Binding S3 bucket, OAI user and Response Headers Policy to the Cloudfront distribution */
+        const cloudfrontDistribution = new cloudfront.Distribution(this, 'CloudFrontDistribution', {
+          defaultRootObject: 'index.html',
+          minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+          defaultBehavior: {
+            origin: new origins.S3Origin(s3HostingBucket, {
+              originAccessIdentity: cloudfrontOAI
+            }),
+            compress: true,
+            allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+            viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            responseHeadersPolicy: responseHeaderPolicy
+          },
+          errorResponses: [
+            {
+              httpStatus: 403,
+              responseHttpStatus: 404,
+              responsePagePath: "/index.html"
+            }
+          ]
+        });
     };
 };
