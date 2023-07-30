@@ -32,5 +32,48 @@ export class WebsiteDeploymentConstruct extends cdk.Stack {
             resources: [s3HostingBucket.arnForObjects('*')],
             principals: [new iam.CanonicalUserPrincipal(cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
         }));
+
+        /**
+        * Creates a Cloudfront Response Headers Policy which applies security headers to enhance security.
+        * The security headers behavior includes the following:
+        * 
+        * - Content Security Policy
+        * - Strict Transport Security
+        * - X-Content-Type-Options
+        * - Referrer Policy
+        * - XSS Protection
+        * - Frame Options
+        */
+        const responseHeaderPolicy = new cloudfront.ResponseHeadersPolicy(this, 'SecurityHeadersResponseHeaderPolicy', {
+            comment: 'Security headers response header policy',
+            securityHeadersBehavior: {
+                contentSecurityPolicy: {
+                    override: true,
+                    contentSecurityPolicy: "default-src https:;"
+                },
+                strictTransportSecurity: {
+                    override: true,
+                    accessControlMaxAge: cdk.Duration.days(2 * 365),
+                    includeSubdomains: true,
+                    preload: true
+                },
+                contentTypeOptions: {
+                    override: true
+                },
+                referrerPolicy: {
+                    override: true,
+                    referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN
+                },
+                xssProtection: {
+                    override: true,
+                    protection: true,
+                    modeBlock: true
+                },
+                frameOptions: {
+                    override: true,
+                    frameOption: cloudfront.HeadersFrameOption.DENY
+                }
+            }
+        });
     };
 };
