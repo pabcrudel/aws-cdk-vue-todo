@@ -78,24 +78,32 @@ export class WebsiteDeploymentConstruct extends cdk.Stack {
 
         /** Binding S3 bucket, OAI user and Response Headers Policy to the Cloudfront distribution */
         const cloudfrontDistribution = new cloudfront.Distribution(this, 'CloudFrontDistribution', {
-          defaultRootObject: 'index.html',
-          minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
-          defaultBehavior: {
-            origin: new origins.S3Origin(s3HostingBucket, {
-              originAccessIdentity: cloudfrontOAI
-            }),
-            compress: true,
-            allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-            viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            responseHeadersPolicy: responseHeaderPolicy
-          },
-          errorResponses: [
-            {
-              httpStatus: 403,
-              responseHttpStatus: 404,
-              responsePagePath: "/index.html"
-            }
-          ]
+            defaultRootObject: 'index.html',
+            minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+            defaultBehavior: {
+                origin: new origins.S3Origin(s3HostingBucket, {
+                    originAccessIdentity: cloudfrontOAI
+                }),
+                compress: true,
+                allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+                viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                responseHeadersPolicy: responseHeaderPolicy
+            },
+            errorResponses: [
+                {
+                    httpStatus: 403,
+                    responseHttpStatus: 404,
+                    responsePagePath: "/index.html"
+                }
+            ]
+        });
+
+        /** Deploying the built files from the frontend to the s3 hosting the website */
+        new s3deploy.BucketDeployment(this, 'S3HostingBucketDeployment', {
+            sources: [s3deploy.Source.asset('../vue-todo/dist'),],
+            prune: false,
+            destinationBucket: s3HostingBucket,
+            distribution: cloudfrontDistribution,
         });
     };
 };
