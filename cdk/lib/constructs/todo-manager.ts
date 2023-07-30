@@ -8,6 +8,14 @@ export class TodoManagerConstruct extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
+        /** 
+         * DynamoDB table for storing ToDo items.
+         * 
+         * - Partition key: 'name' (String)
+         * - Sort key: 'id' (String)
+         * - Encryption: AWS-managed
+         * - Removal policy: DESTROY (table will be deleted when the stack is deleted)
+         */
         const todoTable = new dynamodb.Table(this, 'ToDo', {
             partitionKey: {
                 name: 'name',
