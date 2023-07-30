@@ -8,12 +8,5 @@ export class VueToDoStack extends cdk.Stack {
 
     // Deployment infrastructure
     const websiteDeployment = new WebsiteDeploymentConstruct(this, "WebsiteDeployment");
-
-    // Displays Website domain name on CloudFormation output
-    new cdk.CfnOutput(this, 'CloudFrontDomainName', {
-      value: websiteDeployment.domainName,
-      description: 'Domain name of the CloudFront distribution',
-      exportName: "WebsiteDomainName"
-    });
-  }
-}
+  };
+};

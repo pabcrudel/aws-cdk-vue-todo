@@ -7,8 +7,6 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export class WebsiteDeploymentConstruct extends cdk.Stack {
-    public readonly domainName: string;
-
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
@@ -108,7 +106,11 @@ export class WebsiteDeploymentConstruct extends cdk.Stack {
             distribution: cloudfrontDistribution,
         });
 
-        // Saving CloudFront domain name
-        this.domainName = cloudfrontDistribution.distributionDomainName;
+        // Displays Website domain name on CloudFormation output
+        new cdk.CfnOutput(this, 'CloudFrontDomainName', {
+            value: cloudfrontDistribution.distributionDomainName,
+            description: 'Domain name of the CloudFront distribution',
+            exportName: "WebsiteDomainName"
+        });
     };
 };
