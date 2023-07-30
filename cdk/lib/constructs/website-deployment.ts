@@ -44,7 +44,7 @@ export class WebsiteDeploymentConstruct extends cdk.Stack {
         * - XSS Protection
         * - Frame Options
         */
-        const responseHeaderPolicy = new cloudfront.ResponseHeadersPolicy(this, 'SecurityHeadersResponseHeaderPolicy', {
+        const responseHeaderPolicy = new cloudfront.ResponseHeadersPolicy(this, 'CloudFrontResponseHeaderPolicy', {
             comment: 'Security headers response header policy',
             securityHeadersBehavior: {
                 contentSecurityPolicy: {
