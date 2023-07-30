@@ -20,5 +20,10 @@ export class WebsiteDeploymentConstruct extends cdk.Stack {
         objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
         encryption: s3.BucketEncryption.S3_MANAGED,
       });
+
+      /** CloudFront Origin Access Identity (OAI) user */
+      const cloudfrontOAI = new cloudfront.OriginAccessIdentity(
+        this, 'CloudFrontOriginAccessIdentity'
+      );
     };
 };
