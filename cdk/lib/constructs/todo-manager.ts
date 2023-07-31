@@ -58,7 +58,7 @@ export class TodoManagerConstruct extends cdk.Stack {
             const formatedFunctionName = lambdaFunctionName.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
 
             /**
-            * Common configuration settings for the 4 Lambda functions being created, including:
+            * Configuration settings for the Lambda functions, including:
             * 
             * - Handler: The entry point function that Lambda executes.
             * - Runtime: The Node.js 16.x runtime for the Lambda functions.
