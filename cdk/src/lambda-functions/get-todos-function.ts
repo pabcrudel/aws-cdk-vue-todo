@@ -9,12 +9,12 @@ exports.handler = async (): Promise<APIGatewayProxyResult> => {
 
     try {
         const result = await dbStore.getToDos();
-
+        
         response = {
             statusCode: 200,
             headers: { "content-type": "application/json" },
-            body: `{"ToDo": ${JSON.stringify(result)}}`,
-        }
+            body: `{"ToDos": ${JSON.stringify(result)}}`,
+        };
     }
     catch (error) {
         response = {
