@@ -44,6 +44,15 @@ export class TodoManagerConstruct extends cdk.Stack {
             "DeleteToDoFunction",
         ];
 
+        /* 
+        Variables to control the flow of method creation in the loop
+        to ensure that the methods are created only once.
+        */
+        let hasRootResource: Boolean = false;
+        let todoRestApiRootResource: apigw.Resource;
+        let hasChildResource: Boolean = false;
+        let todoRestApiChildResource: apigw.Resource;
+
         lambdaFunctionNames.map((lambdaFunctionName) => {
             /** Function name in hyphen-separated lowercase letters. */
             const formatedFunctionName = lambdaFunctionName.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
@@ -73,6 +82,45 @@ export class TodoManagerConstruct extends cdk.Stack {
 
             /** Integrates the Lambda function with the Api Gateway */
             const apiLambdaIntegration = new apigw.LambdaIntegration(lambdaFunction);
+
+            // Check if the root resource has been created.
+            if (!hasRootResource) {
+                // If the root resource hasn't been created, add it to the API Gateway.
+                todoRestApiRootResource = todoRestApi.root.addResource('todo');
+
+                // Add a "GET" method to the root resource using the specified Lambda integration.
+                todoRestApiRootResource.addMethod("GET", apiLambdaIntegration);
+
+                // Set the flag to indicate that the root resource has been created.
+                hasRootResource = true;
+            }
+            else {
+                // Check if the child resource exists.
+                if (!hasChildResource) {
+                    // If the child resource doesn't exist, add it to the root resource.
+                    todoRestApiChildResource = todoRestApiRootResource.addResource("{id}");
+
+                    // Set the flag to indicate that the child resource has been created.
+                    hasChildResource = true;
+                }
+
+                // Determine the HTTP request type based on the formatted function name.
+                let httpRequestType: string;
+                switch (true) {
+                    case formatedFunctionName.includes("put"):
+                        httpRequestType = "PUT";
+                        break;
+                    case formatedFunctionName.includes("delete"):
+                        httpRequestType = "DELETE";
+                        break;
+                    default:
+                        httpRequestType = "GET";
+                        break;
+                };
+
+                // Add the HTTP request type method to the child resource using the Lambda integration.
+                todoRestApiChildResource.addMethod(httpRequestType, apiLambdaIntegration);
+            };
         });
     };
 };
