@@ -122,5 +122,12 @@ export class TodoManagerConstruct extends cdk.Stack {
                 todoRestApiChildResource.addMethod(httpRequestType, apiLambdaIntegration);
             };
         });
+
+        // Displays Rest Api URL on CloudFormation output
+        new cdk.CfnOutput(this, 'RestApiURL', {
+            value: `${todoRestApi.url}todo`,
+            description: 'Rest Api root URL ',
+            exportName: "RestApiURL"
+        });
     };
 };
