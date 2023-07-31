@@ -71,7 +71,7 @@ export class TodoManagerConstruct extends cdk.Stack {
             *   - TABLE_NAME: The name of the DynamoDB table (`todoTable`) used by the functions.
             */
             const lambdaFunction = new lambdaNode.NodejsFunction(this, lambdaFunctionName, {
-                entry: `./lambda-functions/${formatedFunctionName}.ts`,
+                entry: `../lambda-functions/${formatedFunctionName}.ts`,
                 handler: "handler",
                 runtime: lambda.Runtime.NODEJS_16_X,
                 environment: {
