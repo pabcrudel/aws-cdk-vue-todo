@@ -5,40 +5,36 @@ import { ToDoDynamoDB } from "../todo-interfaces";
 const dbStore: ToDoDynamoDB = new DynamoDBStore();
 
 exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    let response: APIGatewayProxyResult;
+    let statusCode: number;
+    let body: string;
 
     const id = event.pathParameters!.id;
-    if (id === undefined)
-        response = {
-            statusCode: 400,
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ message: "Missing 'id' parameter in path" }),
-        };
+    if (id === undefined) {
+        statusCode = 400;
+        body = JSON.stringify({ message: "Missing 'id' parameter in path" });
+    }
     else {
         try {
             const result = await dbStore.getToDo(id);
 
-            if (result === undefined)
-                response = {
-                    statusCode: 404,
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify({ message: "ToDo not found" }),
-                };
-            else
-                response = {
-                    statusCode: 200,
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify(result),
-                };
+            if (result === undefined) {
+                statusCode = 404;
+                body = JSON.stringify({ message: "ToDo not found" });
+            }
+            else {
+                statusCode = 200;
+                body = JSON.stringify(result);
+            };
         }
         catch (error) {
-            response = {
-                statusCode: 500,
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify(error),
-            };
+            statusCode = 500;
+            body = JSON.stringify(error);
         };
     };
 
-    return response;
+    return {
+        statusCode,
+        headers: { "content-type": "application/json" },
+        body
+    };
 };
