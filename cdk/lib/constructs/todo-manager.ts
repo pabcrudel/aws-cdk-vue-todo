@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 
 export class TodoManagerConstruct extends cdk.Stack {
@@ -28,6 +29,9 @@ export class TodoManagerConstruct extends cdk.Stack {
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
+
+        /** Rest Api to communicate frontend with DynamoDB ToDo table */
+        const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
 
         /**
          * Array containing the names of Lambda functions to be created.
