@@ -40,10 +40,10 @@ export class ToDoManagerConstruct extends cdk.Stack {
          * These function names will be used in the loop to create the respective Lambda functions.
          */
         const lambdaFunctionNames = [
-            "GetToDosFunction",
-            "GetToDoFunction",
-            "PutToDoFunction",
-            "DeleteToDoFunction",
+            "GetTodosFunction",
+            // "GetTodoFunction",
+            // "PutTodoFunction",
+            // "DeleteTodoFunction",
         ];
 
         /* 
@@ -60,7 +60,7 @@ export class ToDoManagerConstruct extends cdk.Stack {
 
         lambdaFunctionNames.map((lambdaFunctionName) => {
             /** Function name in hyphen-separated lowercase letters. */
-            const formatedFunctionName = lambdaFunctionName.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+            const formatedFunctionName = lambdaFunctionName.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
 
             /**
             * Configuration settings for the Lambda functions, including:
@@ -71,7 +71,7 @@ export class ToDoManagerConstruct extends cdk.Stack {
             *   - TABLE_NAME: The name of the DynamoDB table (`todoTable`) used by the functions.
             */
             const lambdaFunction = new lambdaNode.NodejsFunction(this, lambdaFunctionName, {
-                entry: `../lambda-functions/${formatedFunctionName}.ts`,
+                entry: `./lib/lambda-functions/${formatedFunctionName}.ts`,
                 handler: "handler",
                 runtime: lambda.Runtime.NODEJS_16_X,
                 environment: {
