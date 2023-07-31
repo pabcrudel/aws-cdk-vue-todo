@@ -23,7 +23,17 @@ export class DynamoDBStore implements ToDoDynamo {
         return result.Item as ToDo;
     };
 
-    putToDo: (todo: ToDo) => Promise<void>;
+    public async putToDo(todo: ToDo): Promise<void> {
+        const params: PutCommand = new PutCommand({
+            TableName: DynamoDBStore.tableName,
+            Item: {
+                name: todo.name,
+                id: todo.id
+            },
+        });
+        await DynamoDBStore.ddbDocClient.send(params);
+    };
+    
     deleteToDo: (id: string) => Promise<void>;
     getToDos: () => Promise<ToDo[] | undefined>;
 }
