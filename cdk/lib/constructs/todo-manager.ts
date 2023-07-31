@@ -41,7 +41,7 @@ export class TodoManagerConstruct extends cdk.Stack {
             "GetToDosFunction",
             "GetToDoFunction",
             "PutToDoFunction",
-            "DeleteToDosFunction",
+            "DeleteToDoFunction",
         ];
 
         const lambdaFunctions = lambdaFunctionNames.map((lambdaFunctionName) => {
