@@ -17,7 +17,7 @@ export class DynamoDBStore implements ToDoDynamo {
     public async getToDo(id: string): Promise<ToDo | undefined> {
         const params: GetCommand = new GetCommand({
             TableName: DynamoDBStore.tableName,
-            Key: {id: id,},
+            Key: {id: id},
         });
         const result:GetCommandOutput = await DynamoDBStore.ddbDocClient.send(params);
         return result.Item as ToDo;
@@ -33,7 +33,14 @@ export class DynamoDBStore implements ToDoDynamo {
         });
         await DynamoDBStore.ddbDocClient.send(params);
     };
-    
-    deleteToDo: (id: string) => Promise<void>;
+
+    public async deleteToDo(id: string): Promise<void> {
+        const params: DeleteCommand = new DeleteCommand({
+            TableName: DynamoDBStore.tableName,
+            Key: {id: id},
+        });
+        await DynamoDBStore.ddbDocClient.send(params);
+    };
+
     getToDos: () => Promise<ToDo[] | undefined>;
 }
