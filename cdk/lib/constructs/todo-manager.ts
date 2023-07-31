@@ -9,6 +9,8 @@ export class TodoManagerConstruct extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
+        /** Sort key name used in DynamoDB and as a part path of the Rest Api child resource */
+        const sortKeyName: string = "id";
         /** 
          * DynamoDB table for storing ToDo items.
          * 
@@ -23,7 +25,7 @@ export class TodoManagerConstruct extends cdk.Stack {
                 type: dynamodb.AttributeType.STRING
             },
             sortKey: {
-                name: 'id',
+                name: sortKeyName,
                 type: dynamodb.AttributeType.STRING
             },
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
@@ -52,6 +54,9 @@ export class TodoManagerConstruct extends cdk.Stack {
         let todoRestApiRootResource: apigw.Resource;
         let hasChildResource: Boolean = false;
         let todoRestApiChildResource: apigw.Resource;
+
+        /** Name of the root path part of the Rest Api */
+        const rootResourcePathPart: string = "todo";
 
         lambdaFunctionNames.map((lambdaFunctionName) => {
             /** Function name in hyphen-separated lowercase letters. */
@@ -86,7 +91,7 @@ export class TodoManagerConstruct extends cdk.Stack {
             // Check if the root resource has been created.
             if (!hasRootResource) {
                 // If the root resource hasn't been created, add it to the API Gateway.
-                todoRestApiRootResource = todoRestApi.root.addResource('todo');
+                todoRestApiRootResource = todoRestApi.root.addResource(rootResourcePathPart);
 
                 // Add a "GET" method to the root resource using the specified Lambda integration.
                 todoRestApiRootResource.addMethod("GET", apiLambdaIntegration);
@@ -98,7 +103,7 @@ export class TodoManagerConstruct extends cdk.Stack {
                 // Check if the child resource exists.
                 if (!hasChildResource) {
                     // If the child resource doesn't exist, add it to the root resource.
-                    todoRestApiChildResource = todoRestApiRootResource.addResource("{id}");
+                    todoRestApiChildResource = todoRestApiRootResource.addResource(sortKeyName);
 
                     // Set the flag to indicate that the child resource has been created.
                     hasChildResource = true;
@@ -125,7 +130,7 @@ export class TodoManagerConstruct extends cdk.Stack {
 
         // Displays Rest Api URL on CloudFormation output
         new cdk.CfnOutput(this, 'RestApiURL', {
-            value: `${todoRestApi.url}todo`,
+            value: todoRestApi.url + rootResourcePathPart,
             description: 'Rest Api root URL ',
             exportName: "RestApiURL"
         });
