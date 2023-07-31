@@ -42,5 +42,12 @@ export class DynamoDBStore implements ToDoDynamo {
         await DynamoDBStore.ddbDocClient.send(params);
     };
 
-    getToDos: () => Promise<ToDo[] | undefined>;
+    public async getToDos(): Promise<ToDo[] | undefined> {
+        const params:ScanCommand = new ScanCommand( {
+            TableName: DynamoDBStore.tableName,
+            Limit: 20
+        });
+        const result = await DynamoDBStore.ddbDocClient.send(params);
+        return result.Items as ToDo[];
+    };
 }
