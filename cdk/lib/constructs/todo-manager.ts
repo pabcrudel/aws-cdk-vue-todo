@@ -44,7 +44,7 @@ export class TodoManagerConstruct extends cdk.Stack {
             "DeleteToDoFunction",
         ];
 
-        const lambdaFunctions = lambdaFunctionNames.map((lambdaFunctionName) => {
+        lambdaFunctionNames.map((lambdaFunctionName) => {
             /** Function name in hyphen-separated lowercase letters. */
             const formatedFunctionName = lambdaFunctionName.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
 
@@ -71,7 +71,8 @@ export class TodoManagerConstruct extends cdk.Stack {
             if (formatedFunctionName.includes("get")) todoTable.grantReadData(lambdaFunction);
             else todoTable.grantWriteData(lambdaFunction);
 
-            return lambdaFunction;
+            /** Integrates the Lambda function with the Api Gateway */
+            const apiLambdaIntegration = new apigw.LambdaIntegration(lambdaFunction);
         });
     };
 };
