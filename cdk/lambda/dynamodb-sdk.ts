@@ -10,7 +10,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 /** A class that implements the `ToDoDynamo` interface to interact with DynamoDB to store ToDo items. */
-export class DynamoDBStore implements ToDoDynamoDB {
+export class DynamodbSDK implements ToDoDynamoDB {
     /** The name of the DynamoDB table used to store ToDo items.*/
     private static tableName = process.env.TABLE_NAME;
 
@@ -18,7 +18,7 @@ export class DynamoDBStore implements ToDoDynamoDB {
     private static ddbClient: DynamoDBClient = new DynamoDBClient({});
 
     /** The DynamoDB DocumentClient instance used to execute high-level commands.*/
-    private static ddbDocClient: DynamoDBDocumentClient = DynamoDBDocumentClient.from(DynamoDBStore.ddbClient);
+    private static ddbDocClient: DynamoDBDocumentClient = DynamoDBDocumentClient.from(DynamodbSDK.ddbClient);
 
     /**
      * Retrieves a ToDo item from the DynamoDB store based on its ID.
@@ -27,10 +27,10 @@ export class DynamoDBStore implements ToDoDynamoDB {
      */
     public async getToDo(id: string): Promise<ToDo | undefined> {
         const params: GetCommand = new GetCommand({
-            TableName: DynamoDBStore.tableName,
+            TableName: DynamodbSDK.tableName,
             Key: { id: id },
         });
-        const result: GetCommandOutput = await DynamoDBStore.ddbDocClient.send(
+        const result: GetCommandOutput = await DynamodbSDK.ddbDocClient.send(
             params
         );
         return result.Item as ToDo;
@@ -43,13 +43,13 @@ export class DynamoDBStore implements ToDoDynamoDB {
      */
     public async putToDo(todo: ToDo): Promise<void> {
         const params: PutCommand = new PutCommand({
-            TableName: DynamoDBStore.tableName,
+            TableName: DynamodbSDK.tableName,
             Item: {
                 name: todo.name,
                 id: todo.id,
             },
         });
-        await DynamoDBStore.ddbDocClient.send(params);
+        await DynamodbSDK.ddbDocClient.send(params);
     };
 
     /**
@@ -59,10 +59,10 @@ export class DynamoDBStore implements ToDoDynamoDB {
      */
     public async deleteToDo(id: string): Promise<void> {
         const params: DeleteCommand = new DeleteCommand({
-            TableName: DynamoDBStore.tableName,
+            TableName: DynamodbSDK.tableName,
             Key: { id: id },
         });
-        await DynamoDBStore.ddbDocClient.send(params);
+        await DynamodbSDK.ddbDocClient.send(params);
     };
 
     /**
@@ -71,10 +71,10 @@ export class DynamoDBStore implements ToDoDynamoDB {
      */
     public async getToDos(): Promise<ToDo[] | undefined> {
         const params: ScanCommand = new ScanCommand({
-            TableName: DynamoDBStore.tableName,
+            TableName: DynamodbSDK.tableName,
             Limit: 20,
         });
-        const result = await DynamoDBStore.ddbDocClient.send(params);
+        const result = await DynamodbSDK.ddbDocClient.send(params);
         return result.Items as ToDo[];
     };
 };

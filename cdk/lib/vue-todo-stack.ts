@@ -8,9 +8,9 @@ export class VueToDoStack extends cdk.Stack {
     super(scope, id, props);
 
     // Deployment infrastructure
-    const websiteDeployment = new WebsiteDeploymentConstruct(this, "WebsiteDeployment");
+    new WebsiteDeploymentConstruct(this, "WebsiteDeployment");
 
     // ToDo infrastructure
-    const ToDoManager = new ToDoManagerConstruct(this, "ToDoManager");
+    new ToDoManagerConstruct(this, "ToDoManager");
   };
 };

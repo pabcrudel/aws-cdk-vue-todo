@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDBStore } from "../dynamodb-store";
+import { DynamodbSDK } from "../dynamodb-sdk";
 import { ToDoDynamoDB } from "../todo-interfaces";
 
-const dbStore: ToDoDynamoDB = new DynamoDBStore();
+const dbStore: ToDoDynamoDB = new DynamodbSDK();
 
 exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     let statusCode: number;
@@ -15,7 +15,7 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
     }
     else {
         try {
-            const result = await dbStore.getToDo(id);
+            const result = await dbStore.deleteToDo(id);
 
             if (result === undefined) {
                 statusCode = 404;
@@ -23,7 +23,7 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
             }
             else {
                 statusCode = 200;
-                body = JSON.stringify(result);
+                body = JSON.stringify({ message: "Product deleted" });
             };
         }
         catch (error) {

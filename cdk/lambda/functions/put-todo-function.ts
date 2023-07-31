@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDBStore } from "../dynamodb-store";
+import { DynamodbSDK } from "../dynamodb-sdk";
 import { ToDo, ToDoDynamoDB } from "../todo-interfaces";
 
-const dbStore: ToDoDynamoDB = new DynamoDBStore();
+const dbStore: ToDoDynamoDB = new DynamodbSDK();
 
 exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     let statusCode: number;
