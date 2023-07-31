@@ -1,48 +1,44 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK } from "../dynamodb-sdk";
-import { ToDo, ToDoDynamoDB } from "../todo-interfaces";
 
-const dbStore: ToDoDynamoDB = new DynamodbSDK();
+const dbStore: DynamodbSDK = new DynamodbSDK();
 
-exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     let statusCode: number;
     let body: string;
 
-    const id = event.pathParameters!.id;
-    if (id !== undefined && event.body !== null) {
-        let todo: ToDo;
+    if (event.body !== null) {
         try {
-            todo = JSON.parse(event.body);
+            // Parse the request body to extract the name and id of the ToDo item
+            const requestBody = JSON.parse(event.body);
+            const { name, id } = requestBody;
 
-            if (!(todo instanceof Object)) throw Error("Parsed ToDo is not an object");
-            else if (id !== todo.id) throw Error("ToDo ID in path does not match ToDo ID in body");
-            else {
-                await dbStore.putToDo(todo);
-                statusCode = 201;
-                body = JSON.stringify({ message: "ToDo created" });
-            };
-        } catch (error) {
+            // Check if the required fields are present in the request body
+            if (name === undefined) throw new Error("The 'name' property is required in the request body");
+            if (id === undefined) throw new Error("The 'id' property is required in the request body");
+
+            // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
+            await dbStore.putToDo(name, id);
+
+            // Return a successful response
+            statusCode = 200;
+            body = JSON.stringify({ message: "ToDo created" });
+        } 
+        catch (error) {
+            // Return an error response if there was any issue adding the ToDo item
             statusCode = 400;
             body = JSON.stringify(error);
         };
-    }
+    } 
     else {
+        // Return an error response for empty request body
         statusCode = 400;
-
-        let responseMsg: string = "";
-        if (id === undefined) responseMsg = "Missing 'id' parameter in path";
-        if (event.body === null) {
-            if (responseMsg.length > 0) {
-                responseMsg += "\n"
-            }
-            responseMsg += "Empty request body";
-        };
-        body = responseMsg;
-    }
+        body = JSON.stringify({ message: "Empty request body" });
+    };
 
     return {
         statusCode,
         headers: { "content-type": "application/json" },
-        body
+        body,
     };
 };
