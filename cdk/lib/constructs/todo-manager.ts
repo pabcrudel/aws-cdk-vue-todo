@@ -5,9 +5,9 @@ import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 
-export class ToDoManagerConstruct extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-        super(scope, id, props);
+export class ToDoManagerConstruct extends Construct {
+    constructor(scope: Construct, id: string) {
+        super(scope, id);
 
         /** Sort key name used in DynamoDB and as a part path of the Rest Api child resource */
         const sortKeyName: string = "id";

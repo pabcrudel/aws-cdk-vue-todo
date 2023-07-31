@@ -6,9 +6,9 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
-export class WebsiteDeploymentConstruct extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-        super(scope, id, props);
+export class WebsiteDeploymentConstruct extends Construct {
+    constructor(scope: Construct, id: string) {
+        super(scope, id);
 
         /** The s3 bucket where the website will be hosted */
         const s3HostingBucket = new s3.Bucket(this, 'S3HostingBucket', {
