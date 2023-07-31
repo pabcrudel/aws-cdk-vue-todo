@@ -1,10 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK } from "../dynamodb-sdk";
 
-const dbStore: DynamodbSDK = new DynamodbSDK();
+const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    let statusCode: number;
+    let statusCode: number = 400;
     let body: string;
 
     if (event.body !== null) {
@@ -18,7 +18,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
             if (id === undefined) throw new Error("The 'id' property is required in the request body");
 
             // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
-            await dbStore.putToDo(name, id);
+            await dbSDK.putToDo(name, id);
 
             // Return a successful response
             statusCode = 200;
@@ -26,13 +26,11 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         } 
         catch (error) {
             // Return an error response if there was any issue adding the ToDo item
-            statusCode = 400;
             body = JSON.stringify(error);
         };
     } 
     else {
         // Return an error response for empty request body
-        statusCode = 400;
         body = JSON.stringify({ message: "Empty request body" });
     };
 
