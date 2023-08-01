@@ -1,5 +1,14 @@
 import * as ddb from "@aws-sdk/client-dynamodb";
 
+interface TodoQueryParams {
+    id: string;
+    date: Date;
+};
+
+interface TodoPutParams extends TodoQueryParams {
+    name: string;
+};
+
 /** A class to interact with DynamoDB to store ToDo items. */
 export class DynamodbSDK {
     /** The name of the DynamoDB table used to store ToDo items. */
@@ -23,13 +32,10 @@ export class DynamodbSDK {
      * @param date The creation date of the ToDo.
      * @returns A promise that resolves to the result of the GetItem command.
      */
-    public async getTodo(id: string, date: string): Promise<ddb.GetItemCommandOutput> {
+    public async getTodo(todoParams: TodoQueryParams): Promise<ddb.GetItemCommandOutput> {
         const params: ddb.GetItemCommandInput = {
             TableName: this.tableName,
-            Key: {
-                id: { S: id },
-                date: { S: date },
-            },
+            Key: this.formatKey(todoParams),
         };
         return await this.ddbClient.send(new ddb.GetItemCommand(params));
     };
@@ -40,14 +46,10 @@ export class DynamodbSDK {
      * @param date The creation date of the ToDo.
      * @returns A promise that resolves to the result of the PutItem command.
      */
-    public async putToDo(id: string, date: string, name: string): Promise<ddb.PutItemCommandOutput> {
+    public async putToDo(todoParams: TodoPutParams): Promise<ddb.PutItemCommandOutput> {
         const params: ddb.PutItemCommandInput = {
             TableName: this.tableName,
-            Item: {
-                id: { S: id },
-                date: { S: date },
-                name: { S: name },
-            },
+            Item: this.formatKey(todoParams),
         };
         return await this.ddbClient.send(new ddb.PutItemCommand(params));
     };
@@ -58,14 +60,36 @@ export class DynamodbSDK {
      * @param date The creation date of the ToDo.
      * @returns A promise that resolves to the result of the DeleteItem command.
      */
-    public async deleteToDo(id: string, date: string): Promise<ddb.DeleteItemCommandOutput> {
+    public async deleteToDo(todoParams: TodoQueryParams): Promise<ddb.DeleteItemCommandOutput> {
         const params: ddb.DeleteItemCommandInput = {
             TableName: this.tableName,
-            Key: {
-                id: { S: id },
-                date: { S: date },
-            },
+            Key: this.formatKey(todoParams),
         };
         return await this.ddbClient.send(new ddb.DeleteItemCommand(params));
+    };
+
+    private formatKey(params: { [key: string]: any }): { [key: string]: ddb.AttributeValue } {
+        const formattedKey: { [key: string]: ddb.AttributeValue } = {};
+        for (const key in params) {
+            const value = params[key];
+            switch (typeof value) {
+                case 'string':
+                    formattedKey[key] = { S: value };
+                    break;
+                case 'number':
+                    formattedKey[key] = { N: value.toString() };
+                    break;
+                case 'boolean':
+                    formattedKey[key] = { BOOL: value };
+                    break;
+                case 'object':
+                    if (value instanceof Date) formattedKey[key] = { S: value.toISOString() };
+                    else throw new Error(`Invalid data type for key attribute '${key}'.`);
+                    break;
+                default:
+                    throw new Error(`Invalid data type for key attribute '${key}'.`);
+            };
+        };
+        return formattedKey;
     };
 };
