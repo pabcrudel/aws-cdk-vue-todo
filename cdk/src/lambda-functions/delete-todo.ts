@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK, TodoQueryParams } from "../dynamodb-sdk";
-import { ApiError } from '../api-helper';
+import { ApiError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 
@@ -17,10 +17,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const { id, date } = requestBody;
 
         // Check if the required fields are present in the request body
-        if (id === undefined) throw new ApiError("The 'id' property is required in the request body", 400);
-        if (!isUUID(id)) throw new ApiError("The 'id' property must be a valid uuid", 400);
-        if (date === undefined) throw new ApiError("The 'date' property is required in the request body", 400);
-        if (!isDate(date)) throw new ApiError("The 'date' property must be a valid date", 400);
+        const req: Request = new Request();
+        req.validateUUID(id);
+        req.validateDate(date);
 
         // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
         const todo: TodoQueryParams = {

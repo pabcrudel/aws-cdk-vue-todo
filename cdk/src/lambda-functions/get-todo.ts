@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK, TodoQueryParams } from "../dynamodb-sdk";
-import { ApiError } from '../api-helper';
+import { ApiError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 
@@ -14,15 +14,14 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         // Check if the required fields are present
         const { id, date } = event.queryStringParameters;
-        if (id === undefined) throw new ApiError("The 'id' property is required as a Query Parameters", 400);
-        if (!isUUID(id)) throw new ApiError("The 'id' property must be a valid uuid", 400);
-        if (date === undefined) throw new ApiError("The 'date' property is required as a Query Parameters", 400);
-        if (!isDate(date)) throw new ApiError("The 'date' property is not valid", 400);
+        const req: Request = new Request();
+        req.validateUUID(id);
+        req.validateDate(date);
 
         // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
-        const todo: TodoQueryParams = {
-            id,
-            date: new Date(date)
+        const todo = {
+            id: id!,
+            date: new Date(date!)
         };
         const result = await dbSDK.getTodo(todo);
 
