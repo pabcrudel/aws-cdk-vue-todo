@@ -19,11 +19,11 @@ export class ToDoManagerConstruct extends Construct {
          */
         const todoTable = new dynamodb.Table(this, 'ToDo', {
             partitionKey: {
-                name: 'name',
+                name: 'id',
                 type: dynamodb.AttributeType.STRING
             },
             sortKey: {
-                name: 'id',
+                name: 'date',
                 type: dynamodb.AttributeType.STRING
             },
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
@@ -104,7 +104,7 @@ export class ToDoManagerConstruct extends Construct {
                 // Check if the child resource exists.
                 if (!hasChildResource) {
                     // If the child resource doesn't exist, add it to the root resource.
-                    todoRestApiChildResource = todoRestApiRootResource.addResource(httpRequestType);
+                    todoRestApiChildResource = todoRestApiRootResource.addResource("{id}");
 
                     // Set the flag to indicate that the child resource has been created.
                     hasChildResource = true;

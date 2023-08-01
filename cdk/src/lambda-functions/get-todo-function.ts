@@ -8,17 +8,16 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     let body: string;
 
     try {
-        // Check if the required body is empty
-        if (event.body === null) throw new Error("Empty request body");
+        // Check if the required Query Parameters are empty
+        if (event.queryStringParameters === null) throw new Error("Empty request body");
 
-        // Parse the request body to extract the ToDo item
-        const requestBody = JSON.parse(event.body);
+        // Check if the required fields are present
+        const { id, date } = event.queryStringParameters;
+        if (id === undefined) throw new Error("The 'id' property is required as a Query Parameters");
+        if (date === undefined) throw new Error("The 'date' property is required as a Query Parameters");
 
-        // Check if the required fields are present in the request body
-        if (requestBody.id === undefined) throw new Error("The 'id' property is required in the request body");
-
-        // Call the getToDoById method of DynamodbSDK to get a ToDo item to the table
-        const result = await dbSDK.getTodoById(requestBody.id);
+        // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
+        const result = await dbSDK.getTodo(id, date);
 
         // Return a successful response
         statusCode = 200;

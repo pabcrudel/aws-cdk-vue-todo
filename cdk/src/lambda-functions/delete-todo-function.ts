@@ -13,14 +13,14 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         // Parse the request body to extract the ToDo item
         const requestBody = JSON.parse(event.body);
-        const { name, id } = requestBody;
+        const { id, date } = requestBody;
 
         // Check if the required fields are present in the request body
-        if (name === undefined) throw new Error("The 'name' property is required in the request body");
         if (id === undefined) throw new Error("The 'id' property is required in the request body");
+        if (date === undefined) throw new Error("The 'date' property is required in the request body");
 
         // Call the deleteToDo method of DynamodbSDK to add the new ToDo item to the table
-        await dbSDK.deleteToDo(name, id);
+        await dbSDK.deleteToDo(id, date);
 
         // Return a successful response
         statusCode = 200;
