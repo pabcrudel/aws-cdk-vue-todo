@@ -24,7 +24,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
             date: new Date(),
             name: requestBody.name
         };
-        await dbSDK.putToDo(todo);
+        await dbSDK.setToDo(todo);
 
         // Return a successful response
         statusCode = 200;
