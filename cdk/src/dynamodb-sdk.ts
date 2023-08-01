@@ -13,7 +13,7 @@ export class DynamodbSDK {
     private tableName = process.env.TABLE_NAME;
     private ddbClient: ddb.DynamoDBClient = new ddb.DynamoDBClient({});
 
-    public async getToDos(): Promise<{ [key: string]: any }[]> {
+    public async getAllToDos(): Promise<{ [key: string]: any }[]> {
         const params: ddb.ScanCommandInput = { TableName: this.tableName };
         const result = await this.ddbClient.send(new ddb.ScanCommand(params));
         if (result.Items === undefined) throw new Error("ToDo table is empty");
