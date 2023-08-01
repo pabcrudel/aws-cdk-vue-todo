@@ -9,7 +9,7 @@ export class Request {
     public async getAllToDos(): Promise<{ [key: string]: any }[]> {
         return await this.dbSDK.getAllToDos();
     };
-    public async getTodo(event: APIGatewayProxyEvent): Promise<{ [key: string]: any; }> {
+    public async getToDo(event: APIGatewayProxyEvent): Promise<{ [key: string]: any; }> {
         this.validateParameters(event.queryStringParameters);
 
         const {id, date} = event.queryStringParameters!;
