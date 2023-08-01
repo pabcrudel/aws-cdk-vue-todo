@@ -19,7 +19,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         // if (requestBody.name === undefined) throw new Error("The 'name' property is required in the request body");
 
         // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
-        await dbSDK.putToDo(Date.now().toString(), randomUUID());
+        await dbSDK.putToDo(randomUUID(), Date.now().toString());
 
         // Return a successful response
         statusCode = 200;
