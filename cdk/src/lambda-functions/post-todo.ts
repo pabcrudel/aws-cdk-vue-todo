@@ -1,25 +1,50 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Request } from "../request";
+import { DynamodbSDK, TodoPutParams } from "../dynamodb-sdk";
+import { randomUUID } from "crypto";
+import { ApiError } from '../api-helper';
+
+const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     let statusCode: number;
-    let body: { [key: string]: any; };
-    let Req: Request = new Request();
+    let body: string;
 
     try {
+        // Check if the required body is empty
+        if (event.body === null) throw new ApiError("Empty request body", 400);
+
+        // Parse the request body to extract the ToDo item
+        const requestBody = JSON.parse(event.body);
+
+        // Check if the required fields are present in the request body
+        if (requestBody.name === undefined) throw new ApiError("The 'name' property is required in the request body", 400);
+        if (typeof requestBody.name !== 'string') throw new ApiError("The 'name' property must be a string", 400);
+
+        // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
+        const todo: TodoPutParams = {
+            id: randomUUID(),
+            date: new Date(),
+            name: requestBody.name
+        };
+        await dbSDK.setToDo(todo);
+
         // Return a successful response
-        body = Req.postToDo(event);
         statusCode = 200;
-    } 
+        body = JSON.stringify({ message: "ToDo created" });
+    }
     catch (error) {
-        // Return an error response if there was any issue adding the ToDo item
-        statusCode = 500;
-        body = { error: error instanceof Error ? error.message : "Unknown error occurred" };
+        if (error instanceof ApiError) {
+            statusCode = error.statusCode;
+            body = JSON.stringify({ error: error.message });
+        } else {
+            statusCode = 500;
+            body = JSON.stringify({ error: "Unknown error occurred" });
+        };
     };
 
     return {
         statusCode,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        body,
     };
 };

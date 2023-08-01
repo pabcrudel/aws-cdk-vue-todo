@@ -1,25 +1,36 @@
 import { APIGatewayProxyResult } from "aws-lambda";
-import { Request } from "../request";
+import { DynamodbSDK } from "../dynamodb-sdk";
+import { ApiError } from '../api-helper';
+
+const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(): Promise<APIGatewayProxyResult> {
     let statusCode: number;
-    let body: { [key: string]: any; };
-    let Req: Request = new Request();
+    let body: string;
 
     try {
+        // Parse the request body to extract all the ToDos
+        const result = await dbSDK.getAllToDos();
+
+        if (result.Items === undefined || result.Items.length === 0) throw new ApiError("ToDo table is empty", 404);
+
         // Return a successful response
-        body = Req.getAllToDos();
         statusCode = 200;
+        body = JSON.stringify({ items: dbSDK.parseItems(result.Items) });
     }
     catch (error) {
-        // Return an error response if there was any issue adding the ToDo item
-        statusCode = 500;
-        body = { error: error instanceof Error ? error.message : "Unknown error occurred" };
+        if (error instanceof ApiError) {
+            statusCode = error.statusCode;
+            body = JSON.stringify({ error: error.message });
+        } else {
+            statusCode = 500;
+            body = JSON.stringify({ error: "Unknown error occurred" });
+        };
     };
 
     return {
         statusCode,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(body)
+        body
     };
 };

@@ -9,27 +9,43 @@ export interface TodoPutParams extends TodoQueryParams {
     name: string;
 };
 
+/** A class to interact with DynamoDB to store ToDo items. */
 export class DynamodbSDK {
+    /** The name of the DynamoDB table used to store ToDo items. */
     private tableName = process.env.TABLE_NAME;
+
+    /** The DynamoDB client instance used to execute commands. */
     private ddbClient: ddb.DynamoDBClient = new ddb.DynamoDBClient({});
 
-    public async getAllToDos(): Promise<{ [key: string]: any }[]> {
+    /**
+     * Retrieves all ToDo items from the DynamoDB table.
+     * @returns A promise that resolves to the result of the Scan command.
+     */
+    public async getAllToDos(): Promise<ddb.ScanCommandOutput> {
         const params: ddb.ScanCommandInput = { TableName: this.tableName };
-        const result = await this.ddbClient.send(new ddb.ScanCommand(params));
-        if (result.Items === undefined) throw new Error("ToDo table is empty");
-        return this.parseItems(result.Items);
+        return await this.ddbClient.send(new ddb.ScanCommand(params));
     };
 
-    public async getTodo(todoParams: TodoQueryParams): Promise<{ [key: string]: any }> {
+    /**
+     * Retrieves a specific ToDo item from the DynamoDB table based on its ID.
+     * @param id The ID of the ToDo.
+     * @param date The creation date of the ToDo.
+     * @returns A promise that resolves to the result of the GetItem command.
+     */
+    public async getTodo(todoParams: TodoQueryParams): Promise<ddb.GetItemCommandOutput> {
         const params: ddb.GetItemCommandInput = {
             TableName: this.tableName,
             Key: this.formatKey(todoParams),
         };
-        const result = await this.ddbClient.send(new ddb.GetItemCommand(params));
-        if (result.Item === undefined) throw new Error("There are no matching ToDo");
-        return this.parseItem(result.Item);
+        return await this.ddbClient.send(new ddb.GetItemCommand(params));
     };
 
+    /**
+     * Adds a new ToDo item to the DynamoDB table.
+     * @param id The ID of the ToDo item.
+     * @param date The creation date of the ToDo.
+     * @returns A promise that resolves to the result of the PutItem command.
+     */
     public async setToDo(todoParams: TodoPutParams): Promise<ddb.PutItemCommandOutput> {
         const params: ddb.PutItemCommandInput = {
             TableName: this.tableName,
@@ -38,6 +54,12 @@ export class DynamodbSDK {
         return await this.ddbClient.send(new ddb.PutItemCommand(params));
     };
 
+    /**
+     * Deletes a ToDo item from the DynamoDB table based on its ID and creating date.
+     * @param id The ID of the ToDo item.
+     * @param date The creation date of the ToDo.
+     * @returns A promise that resolves to the result of the DeleteItem command.
+     */
     public async deleteToDo(todoParams: TodoQueryParams): Promise<ddb.DeleteItemCommandOutput> {
         const params: ddb.DeleteItemCommandInput = {
             TableName: this.tableName,
@@ -98,5 +120,15 @@ export class DynamodbSDK {
             };
         };
         return parsedData;
+    };
+
+    public validateUUID(uuid: string): boolean {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+    };
+
+    public validateDate(dateStr: string): boolean {
+        const date = new Date(dateStr);
+        return !isNaN(date.getTime());
     };
 };
