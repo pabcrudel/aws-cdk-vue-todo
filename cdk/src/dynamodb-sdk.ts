@@ -5,7 +5,7 @@ interface TodoQueryParams {
     date: string;
 };
 
-interface TodoPutParams extends TodoQueryParams {
+export interface TodoPutParams extends TodoQueryParams {
     name: string;
 };
 
