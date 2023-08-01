@@ -62,6 +62,9 @@ export class ToDoManagerConstruct extends Construct {
             /** Function name in hyphen-separated lowercase letters. */
             const formatedFunctionName = lambdaFunctionName.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
 
+            /** Determine the HTTP request type based on the formatted function name. */
+            const httpRequestType: string = formatedFunctionName.substring(formatedFunctionName.indexOf("-"));
+
             /**
             * Configuration settings for the Lambda functions, including:
             * 
@@ -82,7 +85,7 @@ export class ToDoManagerConstruct extends Construct {
             // Grant appropriate permissions to the Lambda function over the DynamoDB table.
             // - If the function name includes "get", grant read access using 'grantReadData'.
             // - Otherwise, grant write access using 'grantWriteData'.
-            if (formatedFunctionName.includes("get")) todoTable.grantReadData(lambdaFunction);
+            if (httpRequestType.match(/get/)) todoTable.grantReadData(lambdaFunction);
             else todoTable.grantWriteData(lambdaFunction);
 
             /** Integrates the Lambda function with the Api Gateway */
@@ -109,22 +112,8 @@ export class ToDoManagerConstruct extends Construct {
                     hasChildResource = true;
                 }
 
-                // Determine the HTTP request type based on the formatted function name.
-                let httpRequestType: string;
-                switch (true) {
-                    case formatedFunctionName.includes("put"):
-                        httpRequestType = "PUT";
-                        break;
-                    case formatedFunctionName.includes("delete"):
-                        httpRequestType = "DELETE";
-                        break;
-                    default:
-                        httpRequestType = "GET";
-                        break;
-                };
-
                 // Add the HTTP request type method to the child resource using the Lambda integration.
-                todoRestApiChildResource.addMethod(httpRequestType, apiLambdaIntegration);
+                todoRestApiChildResource.addMethod(httpRequestType.toUpperCase(), apiLambdaIntegration);
             };
         });
 
