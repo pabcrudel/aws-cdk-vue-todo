@@ -1,25 +1,26 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK, TodoQueryParams } from "../dynamodb-sdk";
+import { ApiError } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    let statusCode: number = 400;
+    let statusCode: number;
     let body: string;
 
     try {
         // Check if the required body is empty
-        if (event.body === null) throw new Error("Empty request body");
+        if (event.body === null) throw new ApiError("Empty request body", 400);
 
         // Parse the request body to extract the ToDo item
         const requestBody = JSON.parse(event.body);
         const { id, date } = requestBody;
 
         // Check if the required fields are present in the request body
-        if (id === undefined) throw new Error("The 'id' property is required in the request body");
-        if (!isUUID(id)) throw new Error("The 'id' property must be a valid uuid");
-        if (date === undefined) throw new Error("The 'date' property is required in the request body");
-        if (!isDate(date)) throw new Error("The 'date' property must be a valid date");
+        if (id === undefined) throw new ApiError("The 'id' property is required in the request body", 400);
+        if (!isUUID(id)) throw new ApiError("The 'id' property must be a valid uuid", 400);
+        if (date === undefined) throw new ApiError("The 'date' property is required in the request body", 400);
+        if (!isDate(date)) throw new ApiError("The 'date' property must be a valid date", 400);
 
         // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
         const todo: TodoQueryParams = {
@@ -33,8 +34,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         body = JSON.stringify({ message: "ToDo deleted" });
     } 
     catch (error) {
-        // Return an error response if there was any issue adding the ToDo item
-        body = JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" });
+        if (error instanceof ApiError) {
+            statusCode = error.statusCode;
+            body = JSON.stringify({ error: error.message });
+        } else {
+            statusCode = 500;
+            body = JSON.stringify({ error: "Unknown error occurred" });
+        };
     };
 
     return {

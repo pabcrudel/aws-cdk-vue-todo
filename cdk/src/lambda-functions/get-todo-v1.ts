@@ -1,22 +1,23 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK, TodoQueryParams } from "../dynamodb-sdk-v1";
+import { ApiError } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    let statusCode: number = 400;
+    let statusCode: number;
     let body: string;
 
     try {
         // Check if the required Query Parameters are empty
-        if (event.queryStringParameters === null) throw new Error("Empty request parameters");
+        if (event.queryStringParameters === null) throw new ApiError("Empty request parameters", 400);
 
         // Check if the required fields are present
         const { id, date } = event.queryStringParameters;
-        if (id === undefined) throw new Error("The 'id' property is required as a Query Parameters");
-        if (!isUUID(id)) throw new Error("The 'id' property must be a valid uuid");
-        if (date === undefined) throw new Error("The 'date' property is required as a Query Parameters");
-        if (!isDate(date)) throw new Error("The 'date' property is not valid");
+        if (id === undefined) throw new ApiError("The 'id' property is required as a Query Parameters", 400);
+        if (!isUUID(id)) throw new ApiError("The 'id' property must be a valid uuid", 400);
+        if (date === undefined) throw new ApiError("The 'date' property is required as a Query Parameters", 400);
+        if (!isDate(date)) throw new ApiError("The 'date' property is not valid", 400);
 
         // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
         const todo: TodoQueryParams = {
@@ -25,14 +26,20 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
         const result = await dbSDK.getTodo(todo);
 
-        if (result.Item === undefined) throw new Error("There are no matching ToDo");
+        if (result.Item === undefined) throw new ApiError("There are no matching ToDo", 404);
 
         // Return a successful response
+        statusCode = 200;
         body = JSON.stringify({item: dbSDK.parseItem(result.Item)});
     } 
     catch (error) {
-        // Return an error response if there was any issue getting the ToDo item
-        body = JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" });
+        if (error instanceof ApiError) {
+            statusCode = error.statusCode;
+            body = JSON.stringify({ error: error.message });
+        } else {
+            statusCode = 500;
+            body = JSON.stringify({ error: "Unknown error occurred" });
+        };
     };
 
     return {
