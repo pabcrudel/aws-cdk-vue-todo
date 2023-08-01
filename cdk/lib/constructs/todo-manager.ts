@@ -61,7 +61,7 @@ export class ToDoManagerConstruct extends Construct {
             const formatedFunctionName = lambdaFunctionName.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
 
             /** Determine the HTTP request type based on the formatted function name. */
-            const httpRequestType: string = formatedFunctionName.substring(formatedFunctionName.indexOf("-"));
+            const httpRequestType: string = formatedFunctionName.substring(0, formatedFunctionName.indexOf("-"));
 
             /**
             * Configuration settings for the Lambda functions, including:
