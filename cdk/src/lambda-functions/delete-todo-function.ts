@@ -20,7 +20,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         if (date === undefined) throw new Error("The 'date' property is required in the request body");
 
         // Call the deleteToDo method of DynamodbSDK to add the new ToDo item to the table
-        await dbSDK.deleteToDo(id, date);
+        await dbSDK.deleteToDo({ id, date });
 
         // Return a successful response
         statusCode = 200;

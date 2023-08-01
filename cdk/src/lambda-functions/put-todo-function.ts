@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamodbSDK } from "../dynamodb-sdk";
+import { DynamodbSDK, TodoPutParams } from "../dynamodb-sdk";
 import { randomUUID } from "crypto";
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
@@ -19,7 +19,12 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         if (requestBody.name === undefined) throw new Error("The 'name' property is required in the request body");
 
         // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
-        await dbSDK.putToDo(randomUUID(), Date.now().toString(), requestBody.name);
+        const ToDo: TodoPutParams = {
+            id: randomUUID(),
+            date: Date.now().toString(),
+            name: requestBody.name
+        };
+        await dbSDK.putToDo(ToDo);
 
         // Return a successful response
         statusCode = 200;
