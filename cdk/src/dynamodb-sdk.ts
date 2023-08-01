@@ -93,7 +93,11 @@ export class DynamodbSDK {
         return formattedKey;
     };
 
-    public parseAttributes(data: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
+    public parseItems(items: Record<string, ddb.AttributeValue>[]) {
+        return items.map((item) => this.parseItem(item));
+    };
+
+    public parseItem(data: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
         const parsedData: { [key: string]: any } = {};
 
         for (const key in data) {

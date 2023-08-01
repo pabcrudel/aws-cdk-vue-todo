@@ -11,9 +11,11 @@ export async function handler(): Promise<APIGatewayProxyResult> {
         // Parse the request body to extract all the ToDos
         const result = await dbSDK.getToDos();
 
+        if (result.Items === undefined) throw new Error("ToDo table is empty");
+
         // Return a successful response
         statusCode = 200;
-        body = `{"ToDos": ${JSON.stringify(result)}}`;
+        body = JSON.stringify(dbSDK.parseItems(result.Items));
     }
     catch (error) {
         // Return an error response if there was any issue adding the ToDo item

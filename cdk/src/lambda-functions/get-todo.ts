@@ -23,9 +23,11 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
         const result = await dbSDK.getTodo(todo);
 
+        if (result.Item === undefined) throw new Error("There are no matching ToDo");
+
         // Return a successful response
         statusCode = 200;
-        body = JSON.stringify(result);
+        body = JSON.stringify(dbSDK.parseItem(result.Item));
     } 
     catch (error) {
         // Return an error response if there was any issue getting the ToDo item
