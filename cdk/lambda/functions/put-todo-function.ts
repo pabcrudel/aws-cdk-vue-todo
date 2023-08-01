@@ -8,29 +8,26 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     let statusCode: number = 400;
     let body: string;
 
-    if (event.body !== null) {
-        try {
-            // Parse the request body to extract the name and id of the ToDo item
-            const requestBody = JSON.parse(event.body);
+    try {
+        // Check if the required body is empty
+        if (event.body === null) throw new Error("Empty request body");
 
-            // Check if the required fields are present in the request body
-            if (requestBody.name === undefined) throw new Error("The 'name' property is required in the request body");
+        // Parse the request body to extract the ToDo item
+        const requestBody = JSON.parse(event.body);
 
-            // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
-            await dbSDK.putToDo(requestBody.name, randomUUID());
+        // Check if the required fields are present in the request body
+        if (requestBody.name === undefined) throw new Error("The 'name' property is required in the request body");
 
-            // Return a successful response
-            statusCode = 200;
-            body = JSON.stringify({ message: "ToDo created" });
-        } 
-        catch (error) {
-            // Return an error response if there was any issue adding the ToDo item
-            body = JSON.stringify(error);
-        };
+        // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
+        await dbSDK.putToDo(requestBody.name, randomUUID());
+
+        // Return a successful response
+        statusCode = 200;
+        body = JSON.stringify({ message: "ToDo created" });
     } 
-    else {
-        // Return an error response for empty request body
-        body = JSON.stringify({ message: "Empty request body" });
+    catch (error) {
+        // Return an error response if there was any issue adding the ToDo item
+        body = JSON.stringify(error);
     };
 
     return {

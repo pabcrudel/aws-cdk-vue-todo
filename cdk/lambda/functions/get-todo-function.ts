@@ -1,35 +1,32 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK } from "../dynamodb-sdk";
-import { ToDoDynamoDB } from "../todo-interfaces";
 
-const dbStore: ToDoDynamoDB = new DynamodbSDK();
+const dbSDK: DynamodbSDK = new DynamodbSDK();
 
-exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    let statusCode: number;
+export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    let statusCode: number = 400;
     let body: string;
 
-    const id = event.pathParameters!.id;
-    if (id === undefined) {
-        statusCode = 400;
-        body = JSON.stringify({ message: "Missing 'id' parameter in path" });
-    }
-    else {
-        try {
-            const result = await dbStore.getToDo(id);
+    try {
+        // Check if the required body is empty
+        if (event.body === null) throw new Error("Empty request body");
 
-            if (result === undefined) {
-                statusCode = 404;
-                body = JSON.stringify({ message: "ToDo not found" });
-            }
-            else {
-                statusCode = 200;
-                body = JSON.stringify(result);
-            };
-        }
-        catch (error) {
-            statusCode = 500;
-            body = JSON.stringify(error);
-        };
+        // Parse the request body to extract the ToDo item
+        const requestBody = JSON.parse(event.body);
+
+        // Check if the required fields are present in the request body
+        if (requestBody.id === undefined) throw new Error("The 'id' property is required in the request body");
+
+        // Call the getToDoById method of DynamodbSDK to get a ToDo item to the table
+        const result = await dbSDK.getTodoById(requestBody.id);
+
+        // Return a successful response
+        statusCode = 200;
+        body = JSON.stringify(result);
+    } 
+    catch (error) {
+        // Return an error response if there was any issue getting the ToDo item
+        body = JSON.stringify(error);
     };
 
     return {

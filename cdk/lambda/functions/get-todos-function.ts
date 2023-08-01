@@ -1,20 +1,22 @@
 import { APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK } from "../dynamodb-sdk";
-import { ToDoDynamoDB } from "../todo-interfaces";
 
-const dbStore: ToDoDynamoDB = new DynamodbSDK();
+const dbSDK: DynamodbSDK = new DynamodbSDK();
 
-exports.handler = async (): Promise<APIGatewayProxyResult> => {
+export async function handler(): Promise<APIGatewayProxyResult> {
     let statusCode: number;
     let body: string;
 
     try {
-        const result = await dbStore.getToDos();
+        // Parse the request body to extract all the ToDos
+        const result = await dbSDK.getToDos();
 
+        // Return a successful response
         statusCode = 200;
         body = `{"ToDos": ${JSON.stringify(result)}}`;
     }
     catch (error) {
+        // Return an error response if there was any issue adding the ToDo item
         statusCode = 500;
         body = JSON.stringify(error);
     };
