@@ -37,10 +37,10 @@ export class ToDoManagerConstruct extends Construct {
         const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
 
         // Lambda functions
-        const getAllToDos = this.createLambdaFunction("GetAllToDos");
-        const getToDo = this.createLambdaFunction("GetToDo");
-        const putToDo = this.createLambdaFunction("PutToDo");
-        const deleteToDo = this.createLambdaFunction("DeleteToDo");
+        const getAllToDos = this.createLambdaFunction("GetAllTodos");
+        const getToDo = this.createLambdaFunction("GetTodo");
+        const putToDo = this.createLambdaFunction("PutTodo");
+        const deleteToDo = this.createLambdaFunction("DeleteTodo");
 
         // Grant appropriate permissions to the Lambda function over the DynamoDB table.
         todoTable.grantReadData(getAllToDos);
@@ -54,7 +54,7 @@ export class ToDoManagerConstruct extends Construct {
         todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
         
         // Add a "GET" method to the child resource using the specified Lambda integration.
-        const todoRestApiChildResource = todoRestApi.root.addResource("{id}/{date}");
+        const todoRestApiChildResource = todoRestApi.root.addResource('id' + 'date');
         todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
     };
 
