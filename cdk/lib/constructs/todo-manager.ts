@@ -9,8 +9,6 @@ export class ToDoManagerConstruct extends Construct {
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
-        /** Sort key name used in DynamoDB and as a part path of the Rest Api child resource */
-        const sortKeyName: string = "id";
         /** 
          * DynamoDB table for storing ToDo items.
          * 
@@ -25,7 +23,7 @@ export class ToDoManagerConstruct extends Construct {
                 type: dynamodb.AttributeType.STRING
             },
             sortKey: {
-                name: sortKeyName,
+                name: 'id',
                 type: dynamodb.AttributeType.STRING
             },
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
@@ -83,7 +81,7 @@ export class ToDoManagerConstruct extends Construct {
             });
 
             // Grant appropriate permissions to the Lambda function over the DynamoDB table.
-            // - If the function name includes "get", grant read access using 'grantReadData'.
+            // - If the http request is "get", grant read access using 'grantReadData'.
             // - Otherwise, grant write access using 'grantWriteData'.
             if (httpRequestType.match(/get/)) todoTable.grantReadData(lambdaFunction);
             else todoTable.grantWriteData(lambdaFunction);
@@ -106,7 +104,7 @@ export class ToDoManagerConstruct extends Construct {
                 // Check if the child resource exists.
                 if (!hasChildResource) {
                     // If the child resource doesn't exist, add it to the root resource.
-                    todoRestApiChildResource = todoRestApiRootResource.addResource(sortKeyName);
+                    todoRestApiChildResource = todoRestApiRootResource.addResource(httpRequestType);
 
                     // Set the flag to indicate that the child resource has been created.
                     hasChildResource = true;
