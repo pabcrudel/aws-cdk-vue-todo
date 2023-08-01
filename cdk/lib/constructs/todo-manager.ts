@@ -54,7 +54,7 @@ export class ToDoManagerConstruct extends Construct {
         todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
         
         // Add a "GET" method to the child resource using the specified Lambda integration.
-        const todoRestApiChildResource = todoRestApi.root.addResource('id' + 'date');
+        const todoRestApiChildResource = todoRestApi.root.addResource('todo');
         todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
     };
 

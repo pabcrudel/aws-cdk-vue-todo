@@ -9,10 +9,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         // Check if the required Query Parameters are empty
-        if (event.pathParameters === null) throw new Error("Empty request body");
+        if (event.queryStringParameters === null) throw new Error("Empty request parameters");
 
         // Check if the required fields are present
-        const { id, date } = event.pathParameters;
+        const { id, date } = event.queryStringParameters;
         if (id === undefined) throw new Error("The 'id' property is required as a Query Parameters");
         if (date === undefined) throw new Error("The 'date' property is required as a Query Parameters");
 
