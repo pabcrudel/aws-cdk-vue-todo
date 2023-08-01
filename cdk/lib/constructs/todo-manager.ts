@@ -37,11 +37,11 @@ export class ToDoManagerConstruct extends Construct {
         const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
 
         // Lambda functions
-        const getAllToDos = this.createLambdaFunction("GetAllTodos");
-        const getToDo = this.createLambdaFunction("GetTodo");
-        const postToDo = this.createLambdaFunction("PostTodo");
-        const putToDo = this.createLambdaFunction("PutTodo");
-        const deleteToDo = this.createLambdaFunction("DeleteTodo");
+        const getAllToDos = this.createLambdaFunction("GetAllTodosV1");
+        const getToDo = this.createLambdaFunction("GetTodoV1");
+        const postToDo = this.createLambdaFunction("PostTodoV1");
+        const putToDo = this.createLambdaFunction("PutTodoV1");
+        const deleteToDo = this.createLambdaFunction("DeleteTodoV1");
 
         // Grant appropriate permissions to the Lambda function over the DynamoDB table.
         todoTable.grantReadData(getAllToDos);

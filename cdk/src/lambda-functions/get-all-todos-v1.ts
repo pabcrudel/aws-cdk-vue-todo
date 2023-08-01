@@ -9,7 +9,7 @@ export async function handler(): Promise<APIGatewayProxyResult> {
 
     try {
         // Parse the request body to extract all the ToDos
-        const result = await dbSDK.getToDos();
+        const result = await dbSDK.getAllToDos();
 
         if (result.Items === undefined) throw new Error("ToDo table is empty");
 

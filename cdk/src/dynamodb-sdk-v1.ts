@@ -21,7 +21,7 @@ export class DynamodbSDK {
      * Retrieves all ToDo items from the DynamoDB table.
      * @returns A promise that resolves to the result of the Scan command.
      */
-    public async getToDos(): Promise<ddb.ScanCommandOutput> {
+    public async getAllToDos(): Promise<ddb.ScanCommandOutput> {
         const params: ddb.ScanCommandInput = { TableName: this.tableName };
         return await this.ddbClient.send(new ddb.ScanCommand(params));
     };
