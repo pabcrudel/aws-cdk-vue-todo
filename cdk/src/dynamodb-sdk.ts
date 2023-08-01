@@ -92,4 +92,29 @@ export class DynamodbSDK {
         };
         return formattedKey;
     };
+
+    public parseAttributes(data: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
+        const parsedData: { [key: string]: any } = {};
+
+        for (const key in data) {
+            const value = data[key];
+
+            switch (true) {
+                case 'S' in value:
+                    const stringValue = value.S as string;
+                    const isDate = new Date(stringValue) instanceof Date && !isNaN(new Date(stringValue).getTime());
+                    parsedData[key] = isDate ? new Date(stringValue) : stringValue;
+                    break;
+                case 'N' in value:
+                    parsedData[key] = parseFloat(value.N as string);
+                    break;
+                case 'BOOL' in value:
+                    parsedData[key] = value.BOOL;
+                    break;
+                default:
+                    throw new Error(`Invalid data type for attribute '${key}'.`);
+            };
+        };
+        return parsedData;
+    };
 };
