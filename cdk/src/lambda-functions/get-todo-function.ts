@@ -17,7 +17,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         if (date === undefined) throw new Error("The 'date' property is required as a Query Parameters");
 
         // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
-        const result = await dbSDK.getTodo(id, date);
+        const result = await dbSDK.getTodo({ id, date });
 
         // Return a successful response
         statusCode = 200;

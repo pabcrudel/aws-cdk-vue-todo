@@ -2,7 +2,7 @@ import * as ddb from "@aws-sdk/client-dynamodb";
 
 interface TodoQueryParams {
     id: string;
-    date: Date;
+    date: string;
 };
 
 interface TodoPutParams extends TodoQueryParams {
