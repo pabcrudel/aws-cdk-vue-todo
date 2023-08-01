@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamodbSDK } from "../dynamodb-sdk";
+import { DynamodbSDK, TodoQueryParams } from "../dynamodb-sdk";
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 
@@ -20,7 +20,11 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         if (date === undefined) throw new Error("The 'date' property is required in the request body");
 
         // Call the deleteToDo method of DynamodbSDK to add the new ToDo item to the table
-        await dbSDK.deleteToDo({ id, date });
+        const todo: TodoQueryParams = {
+            id,
+            date: new Date(date)
+        };
+        await dbSDK.deleteToDo(todo);
 
         // Return a successful response
         statusCode = 200;
