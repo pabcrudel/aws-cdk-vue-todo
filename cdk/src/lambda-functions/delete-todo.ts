@@ -21,7 +21,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         if (date === undefined) throw new Error("The 'date' property is required in the request body");
         if (!isUUID(id)) throw new Error("The 'id' property must be a valid uuid");
 
-        // Call the deleteToDo method of DynamodbSDK to add the new ToDo item to the table
+        // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
         const todo: TodoQueryParams = {
             id,
             date: new Date(date)
