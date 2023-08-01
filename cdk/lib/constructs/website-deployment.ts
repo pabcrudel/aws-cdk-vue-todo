@@ -100,7 +100,7 @@ export class WebsiteDeploymentConstruct extends Construct {
 
         /** Deploying the built files from the frontend to the s3 hosting the website */
         new s3deploy.BucketDeployment(this, 'S3HostingBucketDeployment', {
-            sources: [s3deploy.Source.asset('../vue-todo/dist'),],
+            sources: [s3deploy.Source.asset('../frontend/dist'),],
             prune: false,
             destinationBucket: s3HostingBucket,
             distribution: cloudfrontDistribution,
