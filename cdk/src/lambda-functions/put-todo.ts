@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK, TodoPutParams } from "../dynamodb-sdk";
-import { ApiError } from '../api-helper';
+import { ApiError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 
@@ -17,12 +17,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const { id, date, name } = requestBody;
 
         // Check if the required fields are present in the request body and are valid
-        if (id === undefined) throw new ApiError("The 'id' property is required in the request body", 400);
-        if (!isUUID(id)) throw new ApiError("The 'id' property must be a valid uuid", 400);
-        if (date === undefined) throw new ApiError("The 'date' property is required in the request body", 400);
-        if (!isDate(date)) throw new ApiError("The 'date' property is not valid", 400);
-        if (name === undefined) throw new ApiError("The 'name' property is required in the request body", 400);
-        if (typeof requestBody.name !== 'string') throw new ApiError("The 'name' property must be a string", 400);
+        const req: Request = new Request();
+        req.validateUUID(id);
+        req.validateDate(date);
+        req.validateName(name);
 
         // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
         const todo: TodoPutParams = {
