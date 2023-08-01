@@ -36,7 +36,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
     catch (error) {
         // Return an error response if there was any issue adding the ToDo item
-        body = JSON.stringify(error);
+        body = JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" });
     };
 
     return {

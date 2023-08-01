@@ -17,7 +17,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         // Check if the required fields are present in the request body
         if (id === undefined) throw new Error("The 'id' property is required in the request body");
+        if (!isUUID(id)) throw new Error("The 'id' property must be a valid uuid");
         if (date === undefined) throw new Error("The 'date' property is required in the request body");
+        if (!isUUID(id)) throw new Error("The 'id' property must be a valid uuid");
 
         // Call the deleteToDo method of DynamodbSDK to add the new ToDo item to the table
         const todo: TodoQueryParams = {
@@ -32,7 +34,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     } 
     catch (error) {
         // Return an error response if there was any issue adding the ToDo item
-        body = JSON.stringify(error);
+        body = JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" });
     };
 
     return {
@@ -40,4 +42,14 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         headers: { "content-type": "application/json" },
         body
     };
+};
+
+function isUUID(str: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+};
+
+function isDate(dateStr: string): boolean {
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
 };
