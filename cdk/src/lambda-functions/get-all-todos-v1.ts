@@ -15,7 +15,7 @@ export async function handler(): Promise<APIGatewayProxyResult> {
 
         // Return a successful response
         statusCode = 200;
-        body = JSON.stringify(dbSDK.parseItems(result.Items));
+        body = JSON.stringify({items: dbSDK.parseItems(result.Items)});
     }
     catch (error) {
         // Return an error response if there was any issue adding the ToDo item
