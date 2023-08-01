@@ -6,6 +6,8 @@ import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 
 export class ToDoManagerConstruct extends Construct {
+    private todoTableName: string;
+
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
@@ -29,97 +31,51 @@ export class ToDoManagerConstruct extends Construct {
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
+        this.todoTableName = todoTable.tableName;
 
         /** Rest Api to communicate frontend with DynamoDB ToDo table */
         const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
 
-        /**
-         * Array containing the names of Lambda functions to be created.
-         * These function names will be used in the loop to create the respective Lambda functions.
-         */
-        const lambdaFunctionNames = [
-            "GetTodosFunction",
-            "GetTodoFunction",
-            "PutTodoFunction",
-            "DeleteTodoFunction",
-        ];
+        // Lambda functions
+        const getAllToDos = this.createLambdaFunction("GetAllToDos");
+        const getToDo = this.createLambdaFunction("GetToDo");
+        const putToDo = this.createLambdaFunction("PutToDo");
+        const deleteToDo = this.createLambdaFunction("DeleteToDo");
 
-        /* 
-        Variables to control the flow of method creation in the loop
-        to ensure that the methods are created only once.
-        */
-        let hasRootResource: Boolean = false;
-        let todoRestApiRootResource: apigw.Resource;
-        let hasChildResource: Boolean = false;
-        let todoRestApiChildResource: apigw.Resource;
+        // Grant appropriate permissions to the Lambda function over the DynamoDB table.
+        todoTable.grantReadData(getAllToDos);
+        todoTable.grantReadData(getToDo);
+        todoTable.grantWriteData(putToDo);
+        todoTable.grantWriteData(deleteToDo);
 
-        /** Name of the root path part of the Rest Api */
-        const rootResourcePathPart: string = "todo";
+        // Add the HTTP request type method to the root resource using the Lambda integration.
+        todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos));
+        todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo));
+        todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
+        
+        // Add a "GET" method to the child resource using the specified Lambda integration.
+        const todoRestApiChildResource = todoRestApi.root.addResource("{id}/{date}");
+        todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
+    };
 
-        lambdaFunctionNames.map((lambdaFunctionName) => {
-            /** Function name in hyphen-separated lowercase letters. */
-            const formatedFunctionName = lambdaFunctionName.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
+    /**
+    * Configuration settings for the Lambda functions, including:
+    * 
+    * - Handler: The entry point function that Lambda executes.
+    * - Runtime: The Node.js 16.x runtime for the Lambda functions.
+    * - Environment: Environment variables to be passed to the Lambda functions.
+    *   - TABLE_NAME: The name of the DynamoDB table (`todoTable`) used by the functions.
+    */
+    private createLambdaFunction(lambdaFunctionName: string): lambdaNode.NodejsFunction {
+        const formatedFunctionName = lambdaFunctionName.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
 
-            /** Determine the HTTP request type based on the formatted function name. */
-            const httpRequestType: string = formatedFunctionName.substring(0, formatedFunctionName.indexOf("-"));
-
-            /**
-            * Configuration settings for the Lambda functions, including:
-            * 
-            * - Handler: The entry point function that Lambda executes.
-            * - Runtime: The Node.js 16.x runtime for the Lambda functions.
-            * - Environment: Environment variables to be passed to the Lambda functions.
-            *   - TABLE_NAME: The name of the DynamoDB table (`todoTable`) used by the functions.
-            */
-            const lambdaFunction = new lambdaNode.NodejsFunction(this, lambdaFunctionName, {
-                entry: `./src/lambda-functions/${formatedFunctionName}.ts`,
-                handler: "handler",
-                runtime: lambda.Runtime.NODEJS_16_X,
-                environment: {
-                    TABLE_NAME: todoTable.tableName,
-                },
-            });
-
-            // Grant appropriate permissions to the Lambda function over the DynamoDB table.
-            // - If the http request is "get", grant read access using 'grantReadData'.
-            // - Otherwise, grant write access using 'grantWriteData'.
-            if (httpRequestType.match(/get/)) todoTable.grantReadData(lambdaFunction);
-            else todoTable.grantWriteData(lambdaFunction);
-
-            /** Integrates the Lambda function with the Api Gateway */
-            const apiLambdaIntegration = new apigw.LambdaIntegration(lambdaFunction);
-
-            // Check if the root resource has been created.
-            if (!hasRootResource) {
-                // If the root resource hasn't been created, add it to the API Gateway.
-                todoRestApiRootResource = todoRestApi.root.addResource(rootResourcePathPart);
-
-                // Add a "GET" method to the root resource using the specified Lambda integration.
-                todoRestApiRootResource.addMethod("GET", apiLambdaIntegration);
-
-                // Set the flag to indicate that the root resource has been created.
-                hasRootResource = true;
-            }
-            else {
-                // Check if the child resource exists.
-                if (!hasChildResource) {
-                    // If the child resource doesn't exist, add it to the root resource.
-                    todoRestApiChildResource = todoRestApiRootResource.addResource("{id}");
-
-                    // Set the flag to indicate that the child resource has been created.
-                    hasChildResource = true;
-                }
-
-                // Add the HTTP request type method to the child resource using the Lambda integration.
-                todoRestApiChildResource.addMethod(httpRequestType.toUpperCase(), apiLambdaIntegration);
-            };
+        const lambdaFunction = new lambdaNode.NodejsFunction(this, lambdaFunctionName, {
+            entry: `./src/lambda-functions/${formatedFunctionName}.ts`,
+            handler: 'handler',
+            runtime: lambda.Runtime.NODEJS_16_X,
+            environment: {TABLE_NAME: this.todoTableName},
         });
 
-        // Displays Rest Api URL on CloudFormation output
-        new cdk.CfnOutput(this, 'RestApiURL', {
-            value: todoRestApi.url + rootResourcePathPart,
-            description: 'Rest Api root URL ',
-            exportName: "RestApiURL"
-        });
+        return lambdaFunction;
     };
 };
