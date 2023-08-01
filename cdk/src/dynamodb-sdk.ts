@@ -40,12 +40,13 @@ export class DynamodbSDK {
      * @param date The creation date of the ToDo.
      * @returns A promise that resolves to the result of the PutItem command.
      */
-    public async putToDo(id: string, date: string): Promise<ddb.PutItemCommandOutput> {
+    public async putToDo(id: string, date: string, name: string): Promise<ddb.PutItemCommandOutput> {
         const params: ddb.PutItemCommandInput = {
             TableName: this.tableName,
             Item: {
                 id: { S: id },
                 date: { S: date },
+                name: { S: name },
             },
         };
         return await this.ddbClient.send(new ddb.PutItemCommand(params));
