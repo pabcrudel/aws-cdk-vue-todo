@@ -39,17 +39,20 @@ export class ToDoManagerConstruct extends Construct {
         // Lambda functions
         const getAllToDos = this.createLambdaFunction("GetAllTodos");
         const getToDo = this.createLambdaFunction("GetTodo");
+        const postToDo = this.createLambdaFunction("PostTodo");
         const putToDo = this.createLambdaFunction("PutTodo");
         const deleteToDo = this.createLambdaFunction("DeleteTodo");
 
         // Grant appropriate permissions to the Lambda function over the DynamoDB table.
         todoTable.grantReadData(getAllToDos);
         todoTable.grantReadData(getToDo);
+        todoTable.grantWriteData(postToDo);
         todoTable.grantWriteData(putToDo);
         todoTable.grantWriteData(deleteToDo);
 
         // Add the HTTP request type method to the root resource using the Lambda integration.
         todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos));
+        todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo));
         todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo));
         todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
         
