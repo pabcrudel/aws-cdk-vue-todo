@@ -1,9 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK, TodoPutParams } from "../dynamodb-sdk";
 import { randomUUID } from "crypto";
-import { ApiError, Request } from '../api-helper';
+import { BadRequestError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
+const req: Request = new Request();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     let statusCode: number;
@@ -11,7 +12,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         // Check if the required body is empty
-        if (event.body === null) throw new ApiError("Empty request body", 400);
+        if (event.body === null) throw new BadRequestError("Empty request body");
 
         // Parse the request body to extract the ToDo item
         const requestBody = JSON.parse(event.body);
@@ -33,13 +34,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         body = JSON.stringify({ message: "ToDo created" });
     }
     catch (error) {
-        if (error instanceof ApiError) {
-            statusCode = error.statusCode;
-            body = JSON.stringify({ error: error.message });
-        } else {
-            statusCode = 500;
-            body = JSON.stringify({ error: "Unknown error occurred" });
-        };
+        req.catchError(error);
+        statusCode = req.statusCode;
+        body = JSON.stringify(req.rawBody);
     };
 
     return {

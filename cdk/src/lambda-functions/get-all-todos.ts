@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK } from "../dynamodb-sdk";
-import { ApiError, Request } from '../api-helper';
+import { NotFoundError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
 const req: Request = new Request();
@@ -13,7 +13,7 @@ export async function handler(): Promise<APIGatewayProxyResult> {
         // Parse the request body to extract all the ToDos
         const result = await dbSDK.getAllToDos();
 
-        if (result.Items === undefined || result.Items.length === 0) throw new ApiError("ToDo table is empty", 404);
+        if (result.Items === undefined || result.Items.length === 0) throw new NotFoundError("ToDo table is empty");
 
         // Return a successful response
         statusCode = 200;

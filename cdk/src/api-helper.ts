@@ -7,12 +7,12 @@ export class ApiError extends Error {
         this.name = "ApiError";
     };
 };
-class BadRequestError extends ApiError {
+export class BadRequestError extends ApiError {
     constructor(message: string) {
         super(message, 400);
     };
 };
-class NotFoundError extends ApiError {
+export class NotFoundError extends ApiError {
     constructor(message: string) {
         super(message, 404);
     };
