@@ -36,6 +36,7 @@ export function validateDate(dateStr: any) {
 export function validateName(name: any) {
     if (name === undefined) throw new BadRequestError("The 'name' property is required");
     else if (typeof name !== 'string') throw new BadRequestError("The 'name' property must be a string");
+    else if (name.length < 1) throw new BadRequestError("The 'name' property cannot be empty");
 };
 
 export class Request {
