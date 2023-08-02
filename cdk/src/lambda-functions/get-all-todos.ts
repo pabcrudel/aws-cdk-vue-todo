@@ -1,8 +1,6 @@
 import { APIGatewayProxyResult } from "aws-lambda";
-import { DynamodbSDK } from "../dynamodb-sdk";
+import * as dbSDK from "../dynamodb-sdk";
 import { NotFoundError, Request } from '../api-helper';
-
-const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(): Promise<APIGatewayProxyResult> {
     let statusCode: number;

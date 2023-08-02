@@ -1,8 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamodbSDK, TodoQueryParams } from "../dynamodb-sdk";
+import * as dbSDK from "../dynamodb-sdk";
 import { BadRequestError, NotFoundError, Request, validateDate, validateUUID } from '../api-helper';
-
-const dbSDK: DynamodbSDK = new DynamodbSDK();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     let statusCode: number;
@@ -18,7 +16,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         validateDate(date);
 
         // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
-        const todo: TodoQueryParams = {
+        const todo: dbSDK.TodoQueryParams = {
             id: id!,
             date: new Date(date!)
         };
