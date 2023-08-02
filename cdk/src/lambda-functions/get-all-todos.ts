@@ -1,8 +1,9 @@
 import { APIGatewayProxyResult } from "aws-lambda";
 import { DynamodbSDK } from "../dynamodb-sdk";
-import { ApiError } from '../api-helper';
+import { ApiError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
+const req: Request = new Request();
 
 export async function handler(): Promise<APIGatewayProxyResult> {
     let statusCode: number;
@@ -19,13 +20,9 @@ export async function handler(): Promise<APIGatewayProxyResult> {
         body = JSON.stringify({ items: dbSDK.parseItems(result.Items) });
     }
     catch (error) {
-        if (error instanceof ApiError) {
-            statusCode = error.statusCode;
-            body = JSON.stringify({ error: error.message });
-        } else {
-            statusCode = 500;
-            body = JSON.stringify({ error: "Unknown error occurred" });
-        };
+        req.catchError(error);
+        statusCode = req.statusCode;
+        body = JSON.stringify(req.rawBody);
     };
 
     return {

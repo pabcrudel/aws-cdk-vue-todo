@@ -14,6 +14,13 @@ class BadRequestError extends ApiError {
 };
 
 export class Request {
+    public statusCode: number;
+    public rawBody: any;
+
+    public catchError(error: any) {
+        this.statusCode = error instanceof ApiError ? error.statusCode : 500;
+        this.rawBody = {error: error instanceof Error ? error.message : "Unknown error occurred"};
+    };
 
     public validateUUID(uuid: any) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -27,7 +34,7 @@ export class Request {
         else {
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) throw new BadRequestError("The 'date' property is not valid");
-        } 
+        }
     };
 
     public validateName(name: any) {
