@@ -3,7 +3,6 @@ import { DynamodbSDK } from "../dynamodb-sdk";
 import { NotFoundError, Request } from '../api-helper';
 
 const dbSDK: DynamodbSDK = new DynamodbSDK();
-const req: Request = new Request();
 
 export async function handler(): Promise<APIGatewayProxyResult> {
     let statusCode: number;
@@ -20,9 +19,9 @@ export async function handler(): Promise<APIGatewayProxyResult> {
         body = JSON.stringify({ items: dbSDK.parseItems(result.Items) });
     }
     catch (error) {
-        req.catchError(error);
-        statusCode = req.statusCode;
-        body = JSON.stringify(req.rawBody);
+        Request.catchError(error);
+        statusCode = Request.statusCode;
+        body = JSON.stringify(Request.rawBody);
     };
 
     return {
