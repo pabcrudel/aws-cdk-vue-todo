@@ -12,6 +12,11 @@ class BadRequestError extends ApiError {
         super(message, 400);
     };
 };
+class NotFoundError extends ApiError {
+    constructor(message: string) {
+        super(message, 404);
+    };
+};
 
 export class Request {
     public statusCode: number;
@@ -42,4 +47,4 @@ export class Request {
         if (name === undefined) throw new BadRequestError("The 'name' property is required");
         else if (typeof name !== 'string') throw new BadRequestError("The 'name' property must be a string");
     };
-}
+};
