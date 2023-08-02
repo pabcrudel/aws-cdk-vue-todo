@@ -16,6 +16,7 @@ class BadRequestError extends ApiError {
 export class Request {
     public statusCode: number;
     public rawBody: any;
+    public readonly headers: { [key: string]: string } = { "content-type": "application/json" };
 
     public catchError(error: any) {
         this.statusCode = error instanceof ApiError ? error.statusCode : 500;
