@@ -45,6 +45,141 @@ class ApiErrorResponse extends ApiResponse {
     };
 };
 
+let response: APIGatewayProxyResult;
+
+export async function getAllTodos(): Promise<APIGatewayProxyResult> {
+    try {
+        // Parse the request body to extract all the ToDos
+        const result = await dbSDK.getAllToDos();
+
+        if (result.Items === undefined || result.Items.length === 0) throw new NotFoundError("ToDo table is empty");
+
+        // Return a successful response
+        response = new ApiSuccessResponse({ items: dbSDK.parseItems(result.Items) });
+    }
+    catch (error) {
+        response = new ApiErrorResponse(error);
+    };
+
+    return response;
+};
+
+export async function getTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try {
+        // Check if the required Query Parameters are empty
+        if (event.queryStringParameters === null) throw new BadRequestError("Empty request parameters");
+
+        // Check if the required fields are present
+        const { id, date } = event.queryStringParameters;
+        validateUUID(id);
+        validateDate(date);
+
+        // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
+        const todo: dbSDK.TodoQueryParams = {
+            id: id!,
+            date: new Date(date!)
+        };
+        const result = await dbSDK.getTodo(todo);
+
+        if (result.Item === undefined) throw new NotFoundError("There are no matching ToDo");
+
+        // Return a successful response
+        response = new ApiSuccessResponse({item: dbSDK.parseItem(result.Item)});
+    }
+    catch (error) {
+        response = new ApiErrorResponse(error);
+    }
+
+    return response;
+};
+
+export async function postTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try {
+        // Check if the required body is empty
+        if (event.body === null) throw new BadRequestError("Empty request body");
+
+        // Parse the request body to extract the ToDo item
+        const requestBody = JSON.parse(event.body);
+
+        // Check if the required fields are present in the request body
+        validateName(requestBody.name);
+
+        // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
+        const todo: dbSDK.TodoPutParams = {
+            id: randomUUID(),
+            date: new Date(),
+            name: requestBody.name
+        };
+        await dbSDK.setToDo(todo);
+
+        // Return a successful response
+        response = new ApiSuccessResponse({ message: "ToDo created" });
+    }
+    catch (error) {
+        response = new ApiErrorResponse(error);
+    };
+
+    return response;
+};
+
+export async function putTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try {
+        // Check if the required body is empty
+        if (event.body === null) throw new BadRequestError("Empty request body");
+
+        // Parse the request body to extract the ToDo item
+        const requestBody = JSON.parse(event.body);
+        const { id, date, name } = requestBody;
+
+        // Check if the required fields are present in the request body and are valid
+        validateUUID(id);
+        validateDate(date);
+        validateName(name);
+
+        // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
+        const todo: dbSDK.TodoPutParams = {
+            id: id,
+            date: date,
+            name: name
+        };
+        await dbSDK.setToDo(todo);
+
+        // Return a successful response
+        response = new ApiSuccessResponse({ message: "ToDo created" });
+    }
+    catch (error) {
+        response = new ApiErrorResponse(error);
+    };
+
+    return response;
+};
+
+export async function deleteTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try {
+        // Check if the required body is empty
+        if (event.body === null) throw new BadRequestError("Empty request body");
+
+        // Parse the request body to extract the ToDo item
+        const requestBody = JSON.parse(event.body);
+        const { id, date } = requestBody;
+
+        // Check if the required fields are present in the request body
+        validateUUID(id);
+        validateDate(date);
+
+        // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
+        const todo: dbSDK.TodoQueryParams = { id, date: new Date(date) };
+        await dbSDK.deleteToDo(todo);
+
+        response = new ApiSuccessResponse({ message: "ToDo deleted" });
+    }
+    catch (error) {
+        response = new ApiErrorResponse(error);
+    }
+
+    return response;
+};
+
 function validateUUID(uuid: any) {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
