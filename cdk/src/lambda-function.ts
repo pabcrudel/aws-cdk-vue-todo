@@ -45,4 +45,23 @@ class ApiErrorResponse extends ApiResponse {
     };
 };
 
+function validateUUID(uuid: any) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+    if (uuid === undefined) throw new BadRequestError("The 'id' property is required");
+    else if (!uuidRegex.test(uuid)) throw new BadRequestError("The 'id' property must be a valid uuid");
+};
+
+function validateDate(dateStr: any) {
+    if (dateStr === undefined) throw new BadRequestError("The 'date' property is required");
+    else {
+        const isoDateRegex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+        if (!isoDateRegex.test(dateStr)) throw new BadRequestError("The 'date' property is not a valid ISO date");
+    };
+};
+
+function validateName(name: any) {
+    if (name === undefined) throw new BadRequestError("The 'name' property is required");
+    else if (typeof name !== 'string') throw new BadRequestError("The 'name' property must be a string");
+    else if (name.length < 1) throw new BadRequestError("The 'name' property cannot be empty");
+};
