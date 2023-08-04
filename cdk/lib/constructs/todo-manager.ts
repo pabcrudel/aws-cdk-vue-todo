@@ -70,11 +70,11 @@ export class ToDoManagerConstruct extends Construct {
     *   - TABLE_NAME: The name of the DynamoDB table (`todoTable`) used by the functions.
     */
     private createLambdaFunction(lambdaFunctionName: string): lambdaNode.NodejsFunction {
-        const formatedFunctionName = lambdaFunctionName.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
+        const formatedFunctionName = lambdaFunctionName.replace(/^./, (match) => match.toLowerCase());
 
         const lambdaFunction = new lambdaNode.NodejsFunction(this, lambdaFunctionName, {
-            entry: `./src/lambda-functions/${formatedFunctionName}.ts`,
-            handler: 'handler',
+            entry: `./src/lambda-function.ts`,
+            handler: formatedFunctionName,
             runtime: lambda.Runtime.NODEJS_16_X,
             environment: {TABLE_NAME: this.todoTableName},
         });
