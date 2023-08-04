@@ -7,14 +7,13 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export class WebsiteDeploymentConstruct extends Construct {
-    /** The name of the bucket where the website will be hosted */
-    readonly bucketName: string;
+    s3HostingBucket: cdk.aws_s3.Bucket;
 
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
         /** The s3 bucket where the website will be hosted */
-        const s3HostingBucket = new s3.Bucket(this, 'S3HostingBucket', {
+        this.s3HostingBucket = new s3.Bucket(this, 'S3HostingBucket', {
             publicReadAccess: false,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             autoDeleteObjects: true,
@@ -23,7 +22,6 @@ export class WebsiteDeploymentConstruct extends Construct {
             objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
             encryption: s3.BucketEncryption.S3_MANAGED,
         });
-        this.bucketName = s3HostingBucket.bucketName;
 
         /** CloudFront Origin Access Identity (OAI) user */
         const cloudfrontOAI = new cloudfront.OriginAccessIdentity(
@@ -31,9 +29,9 @@ export class WebsiteDeploymentConstruct extends Construct {
         );
 
         // Add the OAI user with read permissions for the objects in the S3 bucket
-        s3HostingBucket.addToResourcePolicy(new iam.PolicyStatement({
+        this.s3HostingBucket.addToResourcePolicy(new iam.PolicyStatement({
             actions: ['s3:GetObject'],
-            resources: [s3HostingBucket.arnForObjects('*')],
+            resources: [this.s3HostingBucket.arnForObjects('*')],
             principals: [new iam.CanonicalUserPrincipal(cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
         }));
 
@@ -85,7 +83,7 @@ export class WebsiteDeploymentConstruct extends Construct {
             defaultRootObject: 'index.html',
             minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
             defaultBehavior: {
-                origin: new origins.S3Origin(s3HostingBucket, {
+                origin: new origins.S3Origin(this.s3HostingBucket, {
                     originAccessIdentity: cloudfrontOAI
                 }),
                 compress: true,
@@ -106,7 +104,7 @@ export class WebsiteDeploymentConstruct extends Construct {
         new s3deploy.BucketDeployment(this, 'S3HostingBucketDeployment', {
             sources: [s3deploy.Source.asset('../frontend/dist'),],
             prune: false,
-            destinationBucket: s3HostingBucket,
+            destinationBucket: this.s3HostingBucket,
             distribution: cloudfrontDistribution,
         });
 
