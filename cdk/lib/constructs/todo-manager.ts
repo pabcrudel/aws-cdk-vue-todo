@@ -5,9 +5,9 @@ import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 
-export class ToDoManagerConstruct extends Construct {
-    private todoTableName: string;
+let tableName: string;
 
+export class ToDoManagerConstruct extends Construct {
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
@@ -31,7 +31,7 @@ export class ToDoManagerConstruct extends Construct {
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
-        this.todoTableName = todoTable.tableName;
+        tableName = todoTable.tableName;
 
         /** Rest Api to communicate frontend with DynamoDB ToDo table */
         const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
@@ -76,7 +76,7 @@ export class ToDoManagerConstruct extends Construct {
             entry: `./src/lambda-function.ts`,
             handler: formatedFunctionName,
             runtime: lambda.Runtime.NODEJS_16_X,
-            environment: {TABLE_NAME: this.todoTableName},
+            environment: {TABLE_NAME: tableName},
         });
 
         return lambdaFunction;
