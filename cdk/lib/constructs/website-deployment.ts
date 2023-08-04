@@ -7,6 +7,9 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export class WebsiteDeploymentConstruct extends Construct {
+    /** The name of the bucket where the website will be hosted */
+    readonly bucketName: string;
+
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
@@ -20,6 +23,7 @@ export class WebsiteDeploymentConstruct extends Construct {
             objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
             encryption: s3.BucketEncryption.S3_MANAGED,
         });
+        this.bucketName = s3HostingBucket.bucketName;
 
         /** CloudFront Origin Access Identity (OAI) user */
         const cloudfrontOAI = new cloudfront.OriginAccessIdentity(

@@ -8,6 +8,9 @@ import { Construct } from 'constructs';
 let tableName: string;
 
 export class ToDoManagerConstruct extends Construct {
+    /** The deployed root URL of the ToDo REST API */
+    readonly apiUrl: string;
+
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
@@ -35,6 +38,9 @@ export class ToDoManagerConstruct extends Construct {
 
         /** Rest Api to communicate frontend with DynamoDB ToDo table */
         const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
+
+        // Store Api Url
+        this.apiUrl = todoRestApi.url;
 
         // Lambda functions
         const getAllToDos = this.createLambdaFunction("GetAllTodos");
