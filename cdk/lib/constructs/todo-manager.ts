@@ -22,7 +22,7 @@ export class ToDoManagerConstruct extends Construct {
          * - Encryption: AWS-managed
          * - Removal policy: DESTROY (table will be deleted when the stack is deleted)
          */
-        const todoTable = new dynamodb.Table(this, 'ToDo', {
+        const todoTable = new dynamodb.Table(this, 'ToDoTable', {
             partitionKey: {
                 name: 'id',
                 type: dynamodb.AttributeType.STRING
