@@ -18,13 +18,17 @@ export class S3Object extends Construct {
     constructor(scope: Construct, id: string, props: S3ObjectStorageProps) {
         super(scope, id)
 
-        /** Common parameters for the service action */
-        const parameters = {
-            Body: JSON.stringify(props.object),
-            Bucket: props.bucket.bucketName,
-            CacheControl: 'max-age=0, no-cache, no-store, must-revalidate',
-            ContentType: 'application/json',
-            Key: props.key,
+        /** Common atributes for the Aws Sdk call */
+        const awsCall: Partial<cr.AwsSdkCall> = {
+            action: 'putObject',
+            parameters: {
+                Body: JSON.stringify(props.object),
+                Bucket: props.bucket.bucketName,
+                CacheControl: 'max-age=0, no-cache, no-store, must-revalidate',
+                ContentType: 'application/json',
+                Key: props.key,
+            },
+            service: 'S3'
         };
     };
 };
