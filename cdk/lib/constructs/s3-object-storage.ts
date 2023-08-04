@@ -14,21 +14,42 @@ export interface S3ObjectStorageProps {
 }
 
 /** This construct allow to upload a JSON object to given S3 bucket. */
-export class S3Object extends Construct {
+export class S3ObjectStorage extends Construct {
     constructor(scope: Construct, id: string, props: S3ObjectStorageProps) {
-        super(scope, id)
+        super(scope, id);
 
         /** Common atributes for the Aws Sdk call */
-        const awsCall: Partial<cr.AwsSdkCall> = {
-            action: 'putObject',
-            parameters: {
+        class awsCall implements cr.AwsSdkCall {
+            action = 'putObject';
+            parameters = {
                 Body: JSON.stringify(props.object),
                 Bucket: props.bucket.bucketName,
                 CacheControl: 'max-age=0, no-cache, no-store, must-revalidate',
                 ContentType: 'application/json',
                 Key: props.key,
-            },
-            service: 'S3'
+            };
+            service = 'S3';
+            physicalResourceId: cr.PhysicalResourceId;
+
+            constructor(physicalResourceId: string) {
+                this.physicalResourceId = cr.PhysicalResourceId.of(physicalResourceId);
+            };
         };
+
+        new cr.AwsCustomResource(this, 'CustomeS3Storage', {
+            resourceType: 'Custom::AWS-S3-Object',
+            onCreate: new awsCall('create-config'),
+            onUpdate: new awsCall('update-config'),
+            policy: cr.AwsCustomResourcePolicy.fromStatements([
+                new iam.PolicyStatement({
+                    actions: [
+                        's3:PutObject',
+                    ],
+                    resources: [
+                        props.bucket.arnForObjects(props.key),
+                    ],
+                }),
+            ]),
+        });
     };
 };
