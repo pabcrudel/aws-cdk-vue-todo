@@ -20,7 +20,7 @@ jobs:
 
         - name: Build Frontend
           run: |
-            cd ~/frontend
+            cd frontend
             npm ci
             npm run build
   
@@ -30,7 +30,7 @@ jobs:
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             AWS_REGION: eu-west-1
           run: |
-            cd ~/cdk
+            cd ../cdk
             npm ci
             npx cdk deploy --require-approval never
   
