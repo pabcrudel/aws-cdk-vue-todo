@@ -19,7 +19,7 @@ import apiClient from '../services/axios';
 async function fetchData() {
   try {
     const response = await apiClient.get('/');
-    console.error(response.data);
+    console.log(response.data);
   } catch (error) {
     console.error('Error al obtener datos:', error);
   }
