@@ -1,14 +1,16 @@
 <template>
-    <button @click="fetchData">Obtener datos</button>
-
     <template v-if="response.length > 0">
         <div v-for="res in response">{{ res }}</div>
+    </template>
+
+    <template v-else>
+        <div>Empty todos</div>
     </template>
 </template>
   
 <script setup>
 import { ref } from 'vue';
-import apiClient from '../../services/axios';
+import apiClient from '../services/axios';
 
 const response = ref([]);
 
@@ -19,7 +21,8 @@ async function fetchData() {
     } 
     catch (error) {
         console.error('Error al obtener datos:', error);
-    }
-}
+    };
+};
+fetchData();
 </script>
   
