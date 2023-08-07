@@ -23,6 +23,13 @@ export class WebsiteDeploymentConstruct extends Construct {
             encryption: s3.BucketEncryption.S3_MANAGED,
         });
 
+        // Displays Bucket name on CloudFormation output
+        new cdk.CfnOutput(this, 'S3BucketName', {
+            value: this.s3HostingBucket.bucketName,
+            description: 'Bucket name of the s3 hosting bucket',
+            exportName: "S3BucketName"
+        });
+
         /** CloudFront Origin Access Identity (OAI) user */
         const cloudfrontOAI = new cloudfront.OriginAccessIdentity(
             this, 'CloudFrontOriginAccessIdentity'
@@ -101,12 +108,12 @@ export class WebsiteDeploymentConstruct extends Construct {
         });
 
         /** Deploying the built files from the frontend to the s3 hosting the website */
-        new s3deploy.BucketDeployment(this, 'S3HostingBucketDeployment', {
-            sources: [s3deploy.Source.asset('../frontend/dist'),],
-            prune: false,
-            destinationBucket: this.s3HostingBucket,
-            distribution: cloudfrontDistribution,
-        });
+        // new s3deploy.BucketDeployment(this, 'S3HostingBucketDeployment', {
+        //     sources: [s3deploy.Source.asset('../frontend/dist'),],
+        //     prune: false,
+        //     destinationBucket: this.s3HostingBucket,
+        //     distribution: cloudfrontDistribution,
+        // });
 
         // Displays Website domain name on CloudFormation output
         new cdk.CfnOutput(this, 'CloudFrontDomainName', {
