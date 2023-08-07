@@ -100,6 +100,15 @@ export class ToDoManagerConstruct extends Construct {
         // Add a "GET" method to the child resource using the specified Lambda integration.
         const todoRestApiChildResource = todoRestApi.root.addResource('filter');
         todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo), myMethodConfig);
+
+        /** Allow OPTIONS request without restrictions */
+        const optionsMethods = todoRestApi.methods.filter(method => method.httpMethod === 'OPTIONS')
+        optionsMethods.forEach(method => {
+            const cfnMethod = method.node.defaultChild as apigw.CfnMethod
+            cfnMethod.addPropertyOverride('ApiKeyRequired', false)
+            cfnMethod.addPropertyOverride('AuthorizationType', 'NONE')
+            cfnMethod.addPropertyDeletionOverride('AuthorizerId')
+        });
     };
 
     /**
