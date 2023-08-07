@@ -6,11 +6,22 @@
     </nav>
   </header>
 
+  <div>
+    <button @click="fetchData">Obtener datos</button>
+  </div>
+
   <RouterView />
 </template>
 
 <script setup>
-const api = import.meta.env.VITE_API_URL
+import apiClient from '../services/axios';
 
-console.log(api)
+async function fetchData() {
+  try {
+    const response = await apiClient.get('/');
+    console.error(response.data);
+  } catch (error) {
+    console.error('Error al obtener datos:', error);
+  }
+};
 </script>
