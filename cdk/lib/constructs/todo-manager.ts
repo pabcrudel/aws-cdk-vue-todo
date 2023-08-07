@@ -120,6 +120,16 @@ export class ToDoManagerConstruct extends Construct {
             environment: { TABLE_NAME: tableName },
         });
 
+        lambdaFunction.addToRolePolicy(new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: [
+                'dynamodb:*',
+            ],
+            resources: [
+                '*',
+            ],
+        }))
+
         return lambdaFunction;
     };
 };
