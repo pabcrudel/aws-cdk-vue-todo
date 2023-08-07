@@ -37,7 +37,11 @@ export class ToDoManagerConstruct extends Construct {
         tableName = todoTable.tableName;
 
         /** Rest Api to communicate frontend with DynamoDB ToDo table */
-        const todoRestApi = new apigw.RestApi(this, "ToDoRestApi");
+        const todoRestApi = new apigw.RestApi(this, "ToDoRestApi", {
+            defaultCorsPreflightOptions: {
+                allowOrigins: apigw.Cors.ALL_ORIGINS
+            }
+        });
 
         // Store Api Url
         this.apiUrl = todoRestApi.url;
