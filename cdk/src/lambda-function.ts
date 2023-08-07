@@ -23,7 +23,12 @@ class NotFoundError extends ApiError {
 };
 class ApiResponse implements APIGatewayProxyResult {
     readonly statusCode: number;
-    readonly headers = { "content-type": "application/json" };
+    readonly headers = {
+        "content-type": "application/json",
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+    };
     readonly body: string;
 
     constructor(statusCode: number, rawBody: any) {
@@ -84,7 +89,7 @@ export async function getTodo(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         if (result.Item === undefined) throw new NotFoundError("There are no matching ToDo");
 
         // Return a successful response
-        response = new ApiSuccessResponse({item: dbSDK.parseItem(result.Item)});
+        response = new ApiSuccessResponse({ item: dbSDK.parseItem(result.Item) });
     }
     catch (error) {
         response = new ApiErrorResponse(error);
