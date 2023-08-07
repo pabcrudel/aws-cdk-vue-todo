@@ -118,6 +118,7 @@ export class ToDoManagerConstruct extends Construct {
             handler: formatedFunctionName,
             runtime: lambda.Runtime.NODEJS_16_X,
             environment: { TABLE_NAME: tableName },
+            timeout: cdk.Duration.seconds(60),
         });
 
         lambdaFunction.addToRolePolicy(new iam.PolicyStatement({
