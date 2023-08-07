@@ -15,12 +15,12 @@ export class VueToDoStack extends cdk.Stack {
     const toDoManager = new ToDoManagerConstruct(this, "ToDoManager");
 
     // Store the Api url to use it in the frontend
-    new S3ObjectStorage(this, "apiConnectionInfoStorage", {
-      bucket: websiteDeployment.s3HostingBucket,
-      key: 'config.json', // SHOULD NOT BE CHANGED
-      object: {
-        apiUrl: toDoManager.apiUrl
-      },
-    });
+    // new S3ObjectStorage(this, "apiConnectionInfoStorage", {
+    //   bucket: websiteDeployment.s3HostingBucket,
+    //   key: 'config.json', // SHOULD NOT BE CHANGED
+    //   object: {
+    //     apiUrl: toDoManager.apiUrl
+    //   },
+    // });
   };
 };
