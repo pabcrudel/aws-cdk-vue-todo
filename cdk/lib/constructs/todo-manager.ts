@@ -3,7 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
-import * as iam from 'aws-cdk-lib/aws-iam';
+// import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 let tableName: string;
@@ -38,27 +38,29 @@ export class ToDoManagerConstruct extends Construct {
         tableName = todoTable.tableName;
 
         /** Rest Api to communicate frontend with DynamoDB ToDo table */
-        const todoRestApi = new apigw.RestApi(this, "ToDoRestApi", {
-            defaultCorsPreflightOptions: {
-                allowOrigins: apigw.Cors.ALL_ORIGINS
-            },
-            policy: new iam.PolicyDocument({
-                statements: [
-                    new iam.PolicyStatement({
-                        actions: [
-                            'execute-api:Invoke',
-                        ],
-                        effect: iam.Effect.ALLOW,
-                        principals: [
-                            new iam.AnyPrincipal(),
-                        ],
-                        resources: [
-                            'execute-api:/*',
-                        ],
-                    }),
-                ],
-            }),
-        });
+        const todoRestApi = new apigw.RestApi(this, "ToDoRestApi" 
+        // , {
+        //     defaultCorsPreflightOptions: {
+        //         allowOrigins: apigw.Cors.ALL_ORIGINS
+        //     },
+        //     policy: new iam.PolicyDocument({
+        //         statements: [
+        //             new iam.PolicyStatement({
+        //                 actions: [
+        //                     'execute-api:Invoke',
+        //                 ],
+        //                 effect: iam.Effect.ALLOW,
+        //                 principals: [
+        //                     new iam.AnyPrincipal(),
+        //                 ],
+        //                 resources: [
+        //                     'execute-api:/*',
+        //                 ],
+        //             }),
+        //         ],
+        //     }),
+        // }
+        );
 
         // Store Api Url
         this.apiUrl = todoRestApi.url;
@@ -77,38 +79,38 @@ export class ToDoManagerConstruct extends Construct {
         todoTable.grantWriteData(putToDo);
         todoTable.grantWriteData(deleteToDo);
 
-        const myMethodConfig: apigw.MethodOptions = {
-            methodResponses: [
-                {
-                    statusCode: '200',
-                    responseParameters: {
-                        'method.response.header.Access-Control-Allow-Headers': true,
-                        'method.response.header.Access-Control-Allow-Methods': true,
-                        'method.response.header.Access-Control-Allow-Credentials': true,
-                        'method.response.header.Access-Control-Allow-Origin': true,
-                    },
-                },
-            ],
-        };
+        // const myMethodConfig: apigw.MethodOptions = {
+        //     methodResponses: [
+        //         {
+        //             statusCode: '200',
+        //             responseParameters: {
+        //                 'method.response.header.Access-Control-Allow-Headers': true,
+        //                 'method.response.header.Access-Control-Allow-Methods': true,
+        //                 'method.response.header.Access-Control-Allow-Credentials': true,
+        //                 'method.response.header.Access-Control-Allow-Origin': true,
+        //             },
+        //         },
+        //     ],
+        // };
 
         // Add the HTTP request type method to the root resource using the Lambda integration.
-        todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos), myMethodConfig);
-        todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo), myMethodConfig);
-        todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo), myMethodConfig);
-        todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo), myMethodConfig);
+        todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos));
+        todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo));
+        todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo));
+        todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
 
         // Add a "GET" method to the child resource using the specified Lambda integration.
         const todoRestApiChildResource = todoRestApi.root.addResource('filter');
-        todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo), myMethodConfig);
+        todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
 
         /** Allow OPTIONS request without restrictions */
-        const optionsMethods = todoRestApi.methods.filter(method => method.httpMethod === 'OPTIONS')
-        optionsMethods.forEach(method => {
-            const cfnMethod = method.node.defaultChild as apigw.CfnMethod
-            cfnMethod.addPropertyOverride('ApiKeyRequired', false)
-            cfnMethod.addPropertyOverride('AuthorizationType', 'NONE')
-            cfnMethod.addPropertyDeletionOverride('AuthorizerId')
-        });
+        // const optionsMethods = todoRestApi.methods.filter(method => method.httpMethod === 'OPTIONS')
+        // optionsMethods.forEach(method => {
+        //     const cfnMethod = method.node.defaultChild as apigw.CfnMethod
+        //     cfnMethod.addPropertyOverride('ApiKeyRequired', false)
+        //     cfnMethod.addPropertyOverride('AuthorizationType', 'NONE')
+        //     cfnMethod.addPropertyDeletionOverride('AuthorizerId')
+        // });
     };
 
     /**
@@ -130,15 +132,15 @@ export class ToDoManagerConstruct extends Construct {
             timeout: cdk.Duration.seconds(60),
         });
 
-        lambdaFunction.addToRolePolicy(new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: [
-                'dynamodb:*',
-            ],
-            resources: [
-                '*',
-            ],
-        }))
+        // lambdaFunction.addToRolePolicy(new iam.PolicyStatement({
+        //     effect: iam.Effect.ALLOW,
+        //     actions: [
+        //         'dynamodb:*',
+        //     ],
+        //     resources: [
+        //         '*',
+        //     ],
+        // }))
 
         return lambdaFunction;
     };
