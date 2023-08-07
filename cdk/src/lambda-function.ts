@@ -57,10 +57,13 @@ export async function getAllTodos(): Promise<APIGatewayProxyResult> {
         // Parse the request body to extract all the ToDos
         const result = await dbSDK.getAllToDos();
 
-        if (result.Items === undefined || result.Items.length === 0) throw new NotFoundError("ToDo table is empty");
+        let response;
+
+        if (result.Items === undefined || result.Items.length === 0) response = { message: "ToDo table is empty" };
+        else response = { items: dbSDK.parseItems(result.Items) };
 
         // Return a successful response
-        response = new ApiSuccessResponse({ items: dbSDK.parseItems(result.Items) });
+        response = new ApiSuccessResponse(response);
     }
     catch (error) {
         response = new ApiErrorResponse(error);
