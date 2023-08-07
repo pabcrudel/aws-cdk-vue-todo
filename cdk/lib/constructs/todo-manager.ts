@@ -3,6 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 let tableName: string;
@@ -40,7 +41,23 @@ export class ToDoManagerConstruct extends Construct {
         const todoRestApi = new apigw.RestApi(this, "ToDoRestApi", {
             defaultCorsPreflightOptions: {
                 allowOrigins: apigw.Cors.ALL_ORIGINS
-            }
+            },
+            policy: new iam.PolicyDocument({
+                statements: [
+                    new iam.PolicyStatement({
+                        actions: [
+                            'execute-api:Invoke',
+                        ],
+                        effect: iam.Effect.ALLOW,
+                        principals: [
+                            new iam.AnyPrincipal(),
+                        ],
+                        resources: [
+                            'execute-api:/*',
+                        ],
+                    }),
+                ],
+            }),
         });
 
         // Store Api Url
@@ -65,7 +82,7 @@ export class ToDoManagerConstruct extends Construct {
         todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo));
         todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo));
         todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
-        
+
         // Add a "GET" method to the child resource using the specified Lambda integration.
         const todoRestApiChildResource = todoRestApi.root.addResource('filter');
         todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
@@ -86,7 +103,7 @@ export class ToDoManagerConstruct extends Construct {
             entry: `./src/lambda-function.ts`,
             handler: formatedFunctionName,
             runtime: lambda.Runtime.NODEJS_16_X,
-            environment: {TABLE_NAME: tableName},
+            environment: { TABLE_NAME: tableName },
         });
 
         return lambdaFunction;
