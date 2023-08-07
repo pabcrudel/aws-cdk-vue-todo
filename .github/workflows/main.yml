@@ -16,13 +16,7 @@ jobs:
         - name: Setup Node.js
           uses: actions/setup-node@v3
           with:
-            node-version: 18
-
-        - name: Build Frontend
-          run: |
-            cd frontend
-            npm ci
-            npm run build
+            node-version: 16
   
         - name: Deploy CDK Infrastructure
           env:
@@ -32,5 +26,19 @@ jobs:
           run: |
             cd cdk
             npm ci
-            npx cdk deploy --require-approval never
+            npx cdk deploy --require-approval never -O cdk-output.json
+            echo "VITE_API_URL=$(cat cdk-output.json | grep -oP 'https://\S+execute-api\S+amazonaws\.com/prod/')" > ../frontend/.env
+            echo "BUCKET_NAME=$(cat cdk-output.json | grep -oP '\S+s3hostingbucket\S+' | sed 's/"//g')" >> $GITHUB_ENV
   
+        - name: Build Frontend
+          run: |
+            cd frontend
+            npm ci
+            npm run build
+
+        - name: Upload built website to S3
+          run: aws s3 sync frontend/dist s3://${BUCKET_NAME}/ --delete
+          env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_REGION: ${{ secrets.AWS_REGION }}
