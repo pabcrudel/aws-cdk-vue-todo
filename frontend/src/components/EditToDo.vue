@@ -1,7 +1,7 @@
 <template>
     <div>
-        <textarea v-model="toDo"></textarea>
-        <button @click="returnToDo">Send</button>
+        <input type="text" :placeholder="props.initialText" v-model="toDo"/>
+        <button @click="returnToDo" v-html="'Send'"/>
     </div>
 </template>
   
@@ -12,10 +12,10 @@ const props = defineProps({initialText: String});
 
 const emit = defineEmits();
 
-const toDo = ref(props.initialText || '');
+const toDo = ref('');
 
 const returnToDo = () => {
-    emit('ToDo', toDo.value);
+    if (toDo.value.length > 0) emit('ToDo', toDo.value);
 };
 </script>
   
