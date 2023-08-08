@@ -36,6 +36,14 @@ export class ToDoManagerConstruct extends Construct {
             },
         });
 
+        /** API usage plan that limitates the requests per minute, with an initial burst of requests */
+        const apiUsagePlan = todoRestApi.addUsagePlan('UsagePlan', {
+            throttle: {
+                burstLimit: 20,  // burst requests before apply rateLimit
+                rateLimit: 100, // requests per minute
+            }
+        });
+
         // Store Api Url
         this.apiUrl = todoRestApi.url;
 
