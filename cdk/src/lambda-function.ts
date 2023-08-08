@@ -164,19 +164,19 @@ export async function putTodo(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
 export async function deleteTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
-        // Check if the required body is empty
-        if (event.body === null) throw new BadRequestError("Empty request body");
-
-        // Parse the request body to extract the ToDo item
-        const requestBody = JSON.parse(event.body);
-        const { id, date } = requestBody;
+        // Check if the required Query Parameters are empty
+        if (event.queryStringParameters === null) throw new BadRequestError("Empty request parameters");
 
         // Check if the required fields are present in the request body
+        const { id, date } = event.queryStringParameters;
         validateUUID(id);
         validateDate(date);
 
         // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
-        const todo: dbSDK.toDoQueryParameters = { id, date };
+        const todo: dbSDK.toDoQueryParameters = {
+            id: id!,
+            date: date!
+        };
         await dbSDK.deleteToDo(todo);
 
         response = new ApiSuccessResponse({ message: "ToDo deleted" });

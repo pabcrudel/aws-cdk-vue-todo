@@ -30,7 +30,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
     async deleteToDo(toDo: ToDo) {
       try {
         await apiClient.delete('', {
-          headers: {
+          params: {
             "id": toDo.id,
             "date": toDo.date
           },
