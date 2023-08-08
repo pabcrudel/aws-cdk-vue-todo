@@ -27,19 +27,32 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async deleteToDo(toDoToRemove: ToDo) {
+    async updateToDo(toDoToUpdate: ToDo) {
       try {
-        await apiClient.delete('', {
-          params: {
-            "id": toDoToRemove.id,
-            "date": toDoToRemove.date
-          },
-        });
-        this.toDos = this.toDos.filter(toDo => {
-          return toDo.id !== toDoToRemove.id || toDo.date !== toDoToRemove.date
+        await apiClient.put('', toDoToUpdate);
+        this.toDos.map(toDo => {
+          if (toDo.id === toDoToUpdate.id && toDo.date === toDoToUpdate.date)
+            toDo.name = toDoToUpdate.name;
         });
       }
       catch (error) { console.log(error) };
-    }
+    },
+    async deleteToDo(toDo: ToDo) {
+      try {
+        await apiClient.delete('', {
+          params: {
+            "id": toDo.id,
+            "date": toDo.date
+          },
+        });
+        this.removeToDo(toDo);
+      }
+      catch (error) { console.log(error) };
+    },
+    removeToDo(toDoToRemove: ToDo) {
+      this.toDos = this.toDos.filter(toDo => {
+        return toDo.id !== toDoToRemove.id || toDo.date !== toDoToRemove.date
+      });
+    },
   },
 });
