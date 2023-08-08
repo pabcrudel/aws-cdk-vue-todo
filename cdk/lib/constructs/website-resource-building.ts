@@ -91,7 +91,7 @@ export class WebsiteResourceBuildingConstruct extends Construct {
             errorResponses: [
                 {
                     httpStatus: 403,
-                    responseHttpStatus: 404,
+                    responseHttpStatus: 200,
                     responsePagePath: "/index.html"
                 }
             ]
