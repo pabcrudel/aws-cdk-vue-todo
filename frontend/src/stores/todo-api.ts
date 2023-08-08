@@ -1,13 +1,8 @@
 import { defineStore } from 'pinia'
 import axios from 'axios';
+import { type ToDo } from '../todo-types';
 
 const apiClient = axios.create({baseURL: import.meta.env.VITE_API_URL});
-
-interface ToDo {
-  id: string;
-  date: string;
-  name: string;
-}
 
 export const useToDoApiStore = defineStore('ToDo Api', {
   state: () => {
