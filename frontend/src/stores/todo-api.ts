@@ -18,5 +18,16 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       } 
       catch (error) {console.log(error)};
     },
+    async deleteToDo(toDo: ToDo) {
+      try {
+        await apiClient.delete('', {
+          headers: {
+            "id": toDo.id,
+            "date": toDo.date
+          },
+        });
+      }
+      catch (error) {console.log(error)};
+    }
   },
 });
