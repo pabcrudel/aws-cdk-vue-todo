@@ -98,15 +98,15 @@ export class WebsiteResourceBuildingConstruct extends Construct {
         });
 
         /** Custom Resource that is responsible for invalidating the cache of the CloudFront distribution. */
-        const cloudFrontAwsResource = new cr.AwsCustomResource(this, "CloudFrontInvalidation", {
+        const cloudFrontAwsResource = new cr.AwsCustomResource(this, `CloudFrontInvalidation-${new Date().toISOString()}`, {
             onCreate: {
-                physicalResourceId: cr.PhysicalResourceId.of(`${cloudfrontDistribution.distributionId}-${Date.now()}`),
+                physicalResourceId: cr.PhysicalResourceId.of(`${cloudfrontDistribution.distributionId}-${new Date().toISOString()}`),
                 service: "CloudFront",
                 action: "createInvalidation",
                 parameters: {
                     DistributionId: cloudfrontDistribution.distributionId,
                     InvalidationBatch: {
-                        CallerReference: Date.now().toString(),
+                        CallerReference: new Date().toISOString(),
                         Paths: {
                             Quantity: 1,
                             Items: ['/*']
