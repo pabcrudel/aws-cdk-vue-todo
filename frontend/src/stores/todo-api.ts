@@ -3,10 +3,16 @@ import axios from 'axios';
 
 const apiClient = axios.create({baseURL: import.meta.env.VITE_API_URL});
 
+interface ToDo {
+  id: string;
+  date: string;
+  name: string;
+}
+
 export const useToDoApiStore = defineStore('ToDo Api', {
   state: () => {
     return {
-      toDos: []
+      toDos: [] as ToDo[],
     }
   },
   actions: {
