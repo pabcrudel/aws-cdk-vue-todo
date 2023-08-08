@@ -3,9 +3,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 export class WebsiteResourceBuildingConstruct extends Construct {
@@ -30,21 +28,6 @@ export class WebsiteResourceBuildingConstruct extends Construct {
             value: this.s3HostingBucket.bucketName,
             description: 'Bucket name of the s3 hosting bucket',
             exportName: "S3BucketName"
-        });
-
-        /** An AWS CloudWatch Events rule that triggers when there are changes made to the S3 bucket. */
-        const s3EventRule = new events.Rule(this, 'S3EventRule', {
-            eventPattern: {
-                source: ['aws.s3'],
-                detailType: ['AWS API Call via CloudTrail'],
-                detail: {
-                    eventSource: ['s3.amazonaws.com'],
-                    eventName: ['PutObject', 'CompleteMultipartUpload'], // Detecta cambios de carga
-                    requestParameters: {
-                        bucketName: [this.s3HostingBucket.bucketName],
-                    },
-                },
-            },
         });
 
         /** CloudFront Origin Access Identity (OAI) user */
@@ -114,33 +97,28 @@ export class WebsiteResourceBuildingConstruct extends Construct {
             ]
         });
 
-        /** Lambda function that is responsible for invalidating the cache of the CloudFront distribution. */
-        const invalidateFunction = new lambda.Function(this, 'InvalidateCacheFunction', {
-            runtime: lambda.Runtime.NODEJS_14_X,
-            handler: 'index.handler',
-            code: lambda.Code.fromInline(`
-                const aws = require('aws-sdk');
-                const cloudfront = new aws.CloudFront();
-            
-                exports.handler = async (event) => {
-                    const invalidationParams = {
-                    DistributionId: '${cloudfrontDistribution.distributionId}',
+        /** Custom Resource that is responsible for invalidating the cache of the CloudFront distribution. */
+        const cloudFrontAwsResource = new cr.AwsCustomResource(this, "CloudFrontInvalidation", {
+            onCreate: {
+                physicalResourceId: cr.PhysicalResourceId.of(`${cloudfrontDistribution.distributionId}-${Date.now()}`),
+                service: "CloudFront",
+                action: "createInvalidation",
+                parameters: {
+                    DistributionId: cloudfrontDistribution.distributionId,
                     InvalidationBatch: {
-                        CallerReference: new Date().toString(),
+                        CallerReference: Date.now().toString(),
                         Paths: {
-                        Quantity: 1,
-                        Items: ['/*'], // Invalida todos los archivos en la distribución
-                        },
-                    },
-                    };
-            
-                    await cloudfront.createInvalidation(invalidationParams).promise();
-                };
-            `),
+                            Quantity: 1,
+                            Items: ['/*']
+                        }
+                    }
+                },
+            },
+            policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+                resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE
+            }),
         });
-
-        // Adds lambda function as a target to the s3 event
-        s3EventRule.addTarget(new targets.LambdaFunction(invalidateFunction));
+        cloudFrontAwsResource.node.addDependency(cloudfrontDistribution);
 
         // Displays Website domain name on CloudFormation output
         new cdk.CfnOutput(this, 'CloudFrontDomainName', {
