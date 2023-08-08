@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios';
-import { type ToDo } from '../todo-types';
+import type { ToDo } from '../todo-types';
 
 const apiClient = axios.create({baseURL: import.meta.env.VITE_API_URL});
 
