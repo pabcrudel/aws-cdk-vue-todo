@@ -10,6 +10,7 @@ let tableName: string;
 export class ToDoManagerConstruct extends Construct {
     /** The deployed root URL of the ToDo REST API */
     readonly apiUrl: string;
+    readonly apiKey: string;
 
     constructor(scope: Construct, id: string) {
         super(scope, id);
@@ -44,8 +45,13 @@ export class ToDoManagerConstruct extends Construct {
             }
         });
 
-        // Store Api Url
+        /** A Key to allow user to use the API */
+        const apiKey = todoRestApi.addApiKey("ApiKey");
+        apiUsagePlan.addApiKey(apiKey);
+
+        // Store Api Url and Key
         this.apiUrl = todoRestApi.url;
+        this.apiKey = apiKey.keyId;
 
         // Lambda functions
         const getAllToDos = this.createLambdaFunction("GetAllTodos");
