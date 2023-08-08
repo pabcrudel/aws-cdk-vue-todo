@@ -27,13 +27,16 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async deleteToDo(toDo: ToDo) {
+    async deleteToDo(toDoToRemove: ToDo) {
       try {
         await apiClient.delete('', {
           params: {
-            "id": toDo.id,
-            "date": toDo.date
+            "id": toDoToRemove.id,
+            "date": toDoToRemove.date
           },
+        });
+        this.toDos = this.toDos.filter(toDo => {
+          return toDo.id !== toDoToRemove.id || toDo.date !== toDoToRemove.date
         });
       }
       catch (error) { console.log(error) };
