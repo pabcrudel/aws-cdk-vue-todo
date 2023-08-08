@@ -20,10 +20,10 @@ export const useToDoApiStore = defineStore('ToDo Api', {
     },
     async createToDo(name: string) {
       try {
-        await apiClient.post('', {
+        const apiResponse = await apiClient.post('', {
           "name": name
         });
-        this.getAllToDos();
+        this.toDos.push(apiResponse.data.item);
       }
       catch (error) { console.log(error) };
     },
