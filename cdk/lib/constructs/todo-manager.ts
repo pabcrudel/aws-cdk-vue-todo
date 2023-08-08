@@ -51,7 +51,7 @@ export class ToDoManagerConstruct extends Construct {
 
         // Store Api Url and Key
         this.apiUrl = todoRestApi.url;
-        this.apiKey = apiKey.keyId;
+        this.apiKey = apiKey.keyId; 
 
         // Lambda functions
         const getAllToDos = this.createLambdaFunction("GetAllTodos");
@@ -68,14 +68,14 @@ export class ToDoManagerConstruct extends Construct {
         todoTable.grantWriteData(deleteToDo);
 
         // Add the HTTP request type method to the root resource using the Lambda integration.
-        todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos));
-        todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo));
-        todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo));
-        todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
+        todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos), {apiKeyRequired: true});
+        todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo), {apiKeyRequired: true});
+        todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo), {apiKeyRequired: true});
+        todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo), {apiKeyRequired: true});
 
         // Add a "GET" method to the child resource using the specified Lambda integration.
         const todoRestApiChildResource = todoRestApi.root.addResource('filter');
-        todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
+        todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo), {apiKeyRequired: true});
 
         /** Allow OPTIONS request without restrictions */
         const optionsMethods = todoRestApi.methods.filter(method => method.httpMethod === 'OPTIONS')
