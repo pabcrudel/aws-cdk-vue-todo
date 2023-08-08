@@ -32,11 +32,6 @@ export class ToDoManagerConstruct extends Construct {
                 allowOrigins: apigw.Cors.ALL_ORIGINS,
             },
             deploy: true,
-            deployOptions: {
-                cachingEnabled: true,
-                cacheTtl: cdk.Duration.seconds(3600),
-                cacheDataEncrypted: true,
-            },
         });
 
         /** API usage plan that limitates the requests per minute, with an initial burst of requests */
