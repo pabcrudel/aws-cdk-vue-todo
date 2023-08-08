@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios';
 import type { ToDo } from '../todo-types';
 
-const apiClient = axios.create({baseURL: import.meta.env.VITE_API_URL});
+const apiClient = axios.create({ baseURL: import.meta.env.VITE_API_URL });
 
 export const useToDoApiStore = defineStore('ToDo Api', {
   state: () => {
@@ -15,8 +15,17 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       try {
         const apiResponse = await apiClient.get('');
         this.toDos = apiResponse.data.items;
-      } 
-      catch (error) {console.log(error)};
+      }
+      catch (error) { console.log(error) };
+    },
+    async createToDo(name: string) {
+      try {
+        await apiClient.post('', {
+          "name": name
+        });
+        this.getAllToDos();
+      }
+      catch (error) { console.log(error) };
     },
     async deleteToDo(toDo: ToDo) {
       try {
@@ -27,7 +36,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
           },
         });
       }
-      catch (error) {console.log(error)};
+      catch (error) { console.log(error) };
     }
   },
 });
