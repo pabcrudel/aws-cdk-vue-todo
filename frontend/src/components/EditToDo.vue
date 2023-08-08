@@ -1,7 +1,7 @@
 <template>
     <div>
-        <input type="text" :placeholder="props.initialText" v-model="toDo"/>
-        <button @click="returnToDo" v-html="'Send'"/>
+        <input type="text" :placeholder="props.initialText" v-model="toDoName"/>
+        <button @click="returnToDoName" v-html="'Send'"/>
     </div>
 </template>
   
@@ -12,10 +12,10 @@ const props = defineProps({initialText: String});
 
 const emit = defineEmits();
 
-const toDo = ref('');
+const toDoName = ref('');
 
-const returnToDo = () => {
-    if (toDo.value.length > 0) emit('ToDo', toDo.value);
+const returnToDoName = () => {
+    if (toDoName.value.length > 0) emit('ToDoName', toDoName.value);
 };
 </script>
   
