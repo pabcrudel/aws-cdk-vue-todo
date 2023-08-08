@@ -20,9 +20,9 @@ const toDoName = ref('');
 const executeFunction = () => {
     if (toDoName.value.length > 0 && props.sendRequest !== undefined) {
         if (props.id !== undefined && props.date !== undefined)
-            props.sendRequest(toDoName.value);
-        else
             props.sendRequest({ name: toDoName.value, id: props.id, date: props.date });
+        else
+            props.sendRequest(toDoName.value);
     };
 }
 </script>
