@@ -31,15 +31,18 @@ export class ToDoManagerConstruct extends Construct {
             defaultCorsPreflightOptions: {
                 allowOrigins: apigw.Cors.ALL_ORIGINS,
             },
+            deploy: true,
         });
 
         /** API usage plan that limitates the requests per minute, with an initial burst of requests */
-        todoRestApi.addUsagePlan('UsagePlan', {
+        const usagePlan = todoRestApi.addUsagePlan('UsagePlan', {
             throttle: {
                 burstLimit: 20,  // burst requests before apply rateLimit
                 rateLimit: 100, // requests per minute
-            }
+            },
         });
+        // Adds the usage plan to the deployment stage of the Api
+        usagePlan.addApiStage({ stage: todoRestApi.deploymentStage });
 
         // Lambda functions
         const getAllToDos = this.createLambdaFunction("GetAllTodos");
