@@ -1,38 +1,32 @@
 <template>
   <div class="home">
     <h1>My ToDos</h1>
-    <div>
-        <input type="text" placeholder="Add a new ToDo" v-model="toDoName"/>
-        <button @click="createToDo(toDoName)" v-html="'Send'"/>
-    </div>
+    <EditToDo :send-request="toDoApi.createToDo" :initial-text="'Add a new ToDo'" />
 
     <template v-if="toDos.length > 0" v-for="toDo in toDos" :key="toDo.name">
-      <li v-html="toDo.name"/>
-      <button v-html="'Delete'" @click="toDoApi.deleteToDo(toDo)"/>
+      <EditToDo v-if="showDialog[toDo.name]" 
+        :send-request="toDoApi.updateToDo" 
+        :initial-text="toDo.name" 
+        :id="toDo.id"
+        :date="toDo.date"
+      />
+      <li v-else v-html="toDo.name" />
+      <button v-html="'Delete'" @click="toDoApi.deleteToDo(toDo)" />
+      <button v-html="'Update'" @click="showDialog[toDo.name] = !showDialog[toDo.name]" />
     </template>
 
-    <div v-else v-html="'ToDo table is empty'"/>
+    <div v-else v-html="'ToDo table is empty'" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { toRefs, ref } from 'vue';
-import {useToDoApiStore} from '../stores/todo-api';
+import { toRefs, ref, type Ref } from 'vue';
+import { useToDoApiStore } from '../stores/todo-api';
 import EditToDo from '@/components/EditToDo.vue';
-import type { ToDo } from '@/todo-types';
 
 const toDoApi = useToDoApiStore();
-
 const { toDos } = toRefs(toDoApi);
-
 toDoApi.getAllToDos();
 
-const createToDo = (name: string) => {
-  if (name.length > 0) {
-    toDoApi.createToDo(name);
-    toDoName.value = '';
-  };
-};
-
-const toDoName = ref('');
+const showDialog = ref({} as {[key: string]: boolean;});
 </script>
