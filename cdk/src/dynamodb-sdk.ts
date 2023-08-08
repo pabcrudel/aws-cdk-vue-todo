@@ -2,7 +2,7 @@ import * as ddb from "@aws-sdk/client-dynamodb";
 
 export interface toDoQueryParameters {
     id: string;
-    date: Date | string;
+    date: string;
 };
 export interface toDoBodyParameters extends toDoQueryParameters {
     name: string;
@@ -14,23 +14,13 @@ const tableName = process.env.TABLE_NAME;
 /** The DynamoDB client instance used to execute commands. */
 const ddbClient: ddb.DynamoDBClient = new ddb.DynamoDBClient({});
 
-/**
- * The function getAllToDos retrieves all items from a DynamoDB table.
- * @returns a Promise that resolves to an object of type `ddb.ScanCommandOutput`.
- */
+/** The function getAllToDos retrieves all items from a DynamoDB table. */
 export async function getAllToDos(): Promise < ddb.ScanCommandOutput > {
     const params: ddb.ScanCommandInput = { TableName: tableName };
     return await ddbClient.send(new ddb.ScanCommand(params));
 };
 
-/**
- * The function `getTodo` retrieves a todo item from a DynamoDB table based on the provided query
- * parameters.
- * @param {toDoQueryParameters} todoParams - The `todoParams` parameter is an object that contains the
- * query parameters for retrieving a specific todo item from a DynamoDB table. It is of type
- * `toDoQueryParameters`.
- * @returns a Promise of type `ddb.GetItemCommandOutput`.
- */
+/** The function `getTodo` retrieves a todo item from a DynamoDB table based on the provided query parameters. */
 export async function getTodo(todoParams: toDoQueryParameters): Promise < ddb.GetItemCommandOutput > {
     const params: ddb.GetItemCommandInput = {
         TableName: tableName,
@@ -39,13 +29,7 @@ export async function getTodo(todoParams: toDoQueryParameters): Promise < ddb.Ge
     return await ddbClient.send(new ddb.GetItemCommand(params));
 };
 
-/**
- * The function sets a new to-do item in a DynamoDB table.
- * @param {toDoBodyParameters} todoParams - The `todoParams` parameter is an object that contains the
- * data for the to-do item that you want to add or update in the DynamoDB table. The specific
- * properties and their types depend on the structure of your to-do item.
- * @returns a Promise of type `ddb.PutItemCommandOutput`.
- */
+/** The function sets a new to-do item in a DynamoDB table. */
 export async function setToDo(todoParams: toDoBodyParameters): Promise < ddb.PutItemCommandOutput > {
     const params: ddb.PutItemCommandInput = {
         TableName: tableName,
@@ -54,14 +38,7 @@ export async function setToDo(todoParams: toDoBodyParameters): Promise < ddb.Put
     return await ddbClient.send(new ddb.PutItemCommand(params));
 };
 
-/**
- * The function deletes a ToDo item from a DynamoDB table.
- * @param {toDoQueryParameters} todoParams - The `todoParams` parameter is an object that contains the
- * query parameters for the todo item that you want to delete. It could include properties such as
- * `id`, `title`, `description`, or any other relevant information that uniquely identifies the todo
- * item in your database.
- * @returns a Promise that resolves to an object of type `ddb.DeleteItemCommandOutput`.
- */
+/** The function deletes a ToDo item from a DynamoDB table. */
 export async function deleteToDo(todoParams: toDoQueryParameters): Promise < ddb.DeleteItemCommandOutput > {
     const params: ddb.DeleteItemCommandInput = {
         TableName: tableName,
@@ -70,13 +47,7 @@ export async function deleteToDo(todoParams: toDoQueryParameters): Promise < ddb
     return await ddbClient.send(new ddb.DeleteItemCommand(params));
 };
 
-/**
- * The `formatKey` function takes an object as input and formats its keys and values into an object
- * with DynamoDB attribute values.
- * @param params - An object containing key-value pairs, where the key is a string and the value can be
- * of any data type.
- * @returns An object of type `{ [key: string]: ddb.AttributeValue }`.
- */
+/** The `formatKey` function takes an object as input and formats its keys and values into an object with DynamoDB attribute values. */
 export function formatKey(params: { [key: string]: any }): { [key: string]: ddb.AttributeValue } {
     const formattedKey: { [key: string]: ddb.AttributeValue } = {};
     for (const key in params) {
@@ -102,25 +73,12 @@ export function formatKey(params: { [key: string]: any }): { [key: string]: ddb.
     return formattedKey;
 };
 
-/**
- * The function `parseItems` takes an array of items and returns an array of parsed items.
- * @param {Record < string, ddb.AttributeValue > []} items - An array of objects where each object
- * represents an item and has a string key and a value of type `ddb.AttributeValue`.
- * @returns an array of objects, where each object has a key-value pair. The key is a string and the
- * value can be of any type.
- */
+/** The function `parseItems` takes an array of items and returns an array of parsed items. */
 export function parseItems(items: Record < string, ddb.AttributeValue > []): { [key: string]: any } [] {
     return items.map((item) => parseItem(item));
 };
 
-/**
- * The `parseItem` function takes in a data object representing an item in a DynamoDB table and returns
- * a parsed version of the data with appropriate data types.
- * @param data - The `data` parameter is an object that represents an item in a DynamoDB table. It has
- * string keys and values of type `ddb.AttributeValue`. The `ddb.AttributeValue` type is an object that
- * can have one of the following properties: `S` (string), `N` (
- * @returns The function `parseItem` returns an object of type `{ [key: string]: any }`.
- */
+/** The `parseItem` function takes in a data object representing an item in a DynamoDB table and returns a parsed version of the data with appropriate data types. */
 export function parseItem(data: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
     const parsedData: { [key: string]: any } = {};
 

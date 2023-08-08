@@ -85,7 +85,7 @@ export async function getTodo(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
         const todo: dbSDK.toDoQueryParameters = {
             id: id!,
-            date: new Date(date!)
+            date: date!
         };
         const result = await dbSDK.getTodo(todo);
 
@@ -115,13 +115,13 @@ export async function postTodo(event: APIGatewayProxyEvent): Promise<APIGatewayP
         // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
         const todo: dbSDK.toDoBodyParameters = {
             id: randomUUID(),
-            date: new Date(),
+            date: new Date().toISOString(),
             name: requestBody.name
         };
         await dbSDK.setToDo(todo);
 
         // Return a successful response
-        response = new ApiSuccessResponse({ message: "ToDo created" });
+        response = new ApiSuccessResponse({ message: "ToDo created", item: todo });
     }
     catch (error) {
         response = new ApiErrorResponse(error);
@@ -153,7 +153,7 @@ export async function putTodo(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         await dbSDK.setToDo(todo);
 
         // Return a successful response
-        response = new ApiSuccessResponse({ message: "ToDo created" });
+        response = new ApiSuccessResponse({ message: "ToDo created", item: todo });
     }
     catch (error) {
         response = new ApiErrorResponse(error);
@@ -176,7 +176,7 @@ export async function deleteTodo(event: APIGatewayProxyEvent): Promise<APIGatewa
         validateDate(date);
 
         // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
-        const todo: dbSDK.toDoQueryParameters = { id, date: new Date(date) };
+        const todo: dbSDK.toDoQueryParameters = { id, date };
         await dbSDK.deleteToDo(todo);
 
         response = new ApiSuccessResponse({ message: "ToDo deleted" });
