@@ -34,7 +34,7 @@ export class ToDoManagerConstruct extends Construct {
             deploy: true,
         });
 
-        /** API usage plan that limitates the requests per minute, with an initial burst of requests */
+        /** API usage plan that limits the requests per minute, with an initial burst of requests */
         const usagePlan = todoRestApi.addUsagePlan('UsagePlan', {
             throttle: {
                 burstLimit: 20,  // burst requests before apply rateLimit
@@ -45,11 +45,11 @@ export class ToDoManagerConstruct extends Construct {
         usagePlan.addApiStage({ stage: todoRestApi.deploymentStage });
 
         // Lambda functions
-        const getAllToDos = this.createLambdaFunction("GetAllTodos");
-        const getToDo = this.createLambdaFunction("GetTodo");
-        const postToDo = this.createLambdaFunction("PostTodo");
-        const putToDo = this.createLambdaFunction("PutTodo");
-        const deleteToDo = this.createLambdaFunction("DeleteTodo");
+        const getAllToDos = this.createLambdaFunction("GetAllToDos");
+        const getToDo = this.createLambdaFunction("GetToDo");
+        const postToDo = this.createLambdaFunction("PostToDo");
+        const putToDo = this.createLambdaFunction("PutToDo");
+        const deleteToDo = this.createLambdaFunction("DeleteToDo");
 
         // Grant appropriate permissions to the Lambda function over the DynamoDB table.
         todoTable.grantReadData(getAllToDos);
@@ -80,11 +80,11 @@ export class ToDoManagerConstruct extends Construct {
 
     /** Configuration settings for the Lambda functions. */
     private createLambdaFunction(lambdaFunctionName: string): lambdaNode.NodejsFunction {
-        const formatedFunctionName = lambdaFunctionName.replace(/^./, (match) => match.toLowerCase());
+        const formattedFunctionName = lambdaFunctionName.replace(/^./, (match) => match.toLowerCase());
 
         const lambdaFunction = new lambdaNode.NodejsFunction(this, lambdaFunctionName, {
             entry: `./src/lambda-function.ts`,
-            handler: formatedFunctionName,
+            handler: formattedFunctionName,
             runtime: lambda.Runtime.NODEJS_16_X,
             environment: { TABLE_NAME: tableName },
             timeout: cdk.Duration.seconds(60),
