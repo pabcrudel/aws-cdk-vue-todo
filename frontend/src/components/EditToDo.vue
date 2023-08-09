@@ -1,12 +1,12 @@
 <template>
     <div class="editToDo">
         <input type="text" :placeholder="props.initialText" v-model="toDoName" />
-        <button @click="executeFunction" v-html="'Send'" />
+        <button @click="executeFunction" v-html="'Send'" :disabled="disableButton"/>
     </div>
 </template>
   
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     id: String,
@@ -16,6 +16,10 @@ const props = defineProps({
 });
 
 const toDoName = ref('');
+
+const disableButton = computed(() => {
+    return toDoName.value.length < 1;
+});
 
 const executeFunction = () => {
     if (toDoName.value.length > 0 && props.sendRequest !== undefined) {
