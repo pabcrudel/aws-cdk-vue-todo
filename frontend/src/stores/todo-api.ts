@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import axios from 'axios';
-import type { ToDo } from '../../../common-types';
+import type { IToDo } from '../../../common-types';
 
 const apiClient = axios.create({ baseURL: import.meta.env.VITE_API_URL });
 
 export const useToDoApiStore = defineStore('ToDo Api', {
   state: () => {
     return {
-      toDos: [] as ToDo[],
+      toDos: [] as IToDo[],
     }
   },
   actions: {
@@ -27,7 +27,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async updateToDo(toDoToUpdate: ToDo) {
+    async updateToDo(toDoToUpdate: IToDo) {
       try {
         await apiClient.put('', toDoToUpdate);
         this.toDos.map(toDo => {
@@ -37,7 +37,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async deleteToDo(toDo: ToDo) {
+    async deleteToDo(toDo: IToDo) {
       try {
         await apiClient.delete('', {
           params: {
@@ -49,7 +49,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    removeToDo(toDoToRemove: ToDo) {
+    removeToDo(toDoToRemove: IToDo) {
       this.toDos = this.toDos.filter(toDo => {
         return toDo.id !== toDoToRemove.id || toDo.date !== toDoToRemove.date
       });
