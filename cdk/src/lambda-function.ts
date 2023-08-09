@@ -71,9 +71,9 @@ class KeyParams extends DefaultParams {
 class ItemParams extends DefaultParams {
     readonly Item: Record<string, ddb.AttributeValue>;
 
-    constructor(IToDo: IToDo) {
+    constructor(toDo: IToDo) {
         super();
-        this.Item = formatItems(IToDo);
+        this.Item = formatItems(toDo);
     };
 };
 
@@ -126,7 +126,7 @@ async function setTodo(body: string | null): Promise<ApiResponse> {
     await ddbClient.send(new ddb.PutItemCommand(new ItemParams(toDo)));
 
     // Return a successful response
-    return new ApiSuccessResponse({ message: "IToDo created", item: toDo });
+    return new ApiSuccessResponse({ message: "ToDo created", item: toDo });
 };
 
 export async function postToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
