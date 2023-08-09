@@ -1,6 +1,11 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import * as dbSDK from "./dynamodb-sdk";
+import * as ddb from "@aws-sdk/client-dynamodb";
+import {
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult,
+    APIGatewayProxyEventQueryStringParameters
+} from "aws-lambda";
 import { randomUUID } from "crypto";
+import type { IToDo } from '../../common-types';
 
 class ApiError extends Error {
     statusCode: number;
@@ -21,6 +26,7 @@ class NotFoundError extends ApiError {
         super(message, 404);
     };
 };
+
 class ApiResponse implements APIGatewayProxyResult {
     readonly statusCode: number;
     readonly headers = {
@@ -50,161 +56,206 @@ class ApiErrorResponse extends ApiResponse {
     };
 };
 
-let response: APIGatewayProxyResult;
+class DefaultParams {
+    /** The name of the DynamoDB table used to store ToDo items. */
+    readonly TableName = process.env.TABLE_NAME;
+};
+class KeyParams extends DefaultParams {
+    readonly Key: Record<string, ddb.AttributeValue>;
 
-export async function getAllTodos(): Promise<APIGatewayProxyResult> {
-    try {
-        // Parse the request body to extract all the ToDos
-        const result = await dbSDK.getAllToDos();
-
-        const resultItems =
-            (result.Items === undefined || result.Items.length === 0) ?
-                [] :
-                dbSDK.parseItems(result.Items);
-
-        // Return a successful response
-        response = new ApiSuccessResponse({ items: resultItems });
-    }
-    catch (error) {
-        response = new ApiErrorResponse(error);
+    constructor(id: string, date: string) {
+        super();
+        this.Key = formatItems({ id, date });
     };
+};
+class ItemParams extends DefaultParams {
+    readonly Item: Record<string, ddb.AttributeValue>;
 
-    return response;
+    constructor(IToDo: IToDo) {
+        super();
+        this.Item = formatItems(IToDo);
+    };
 };
 
-export async function getTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try {
-        // Check if the required Query Parameters are empty
-        if (event.queryStringParameters === null) throw new BadRequestError("Empty request parameters");
+class ToDo implements IToDo {
+    readonly name: string;
+    readonly id: string;
+    readonly date: string;
 
-        // Check if the required fields are present
-        const { id, date } = event.queryStringParameters;
-        validateUUID(id);
-        validateDate(date);
-
-        // Call the getToDo method of DynamodbSDK to get a ToDo item to the table
-        const todo: dbSDK.toDoQueryParameters = {
-            id: id!,
-            date: date!
+    constructor(id: any, date: any, name: any) {
+        if (id === undefined || date === undefined) {
+            this.id = randomUUID();
+            this.date = new Date().toISOString();
+        }
+        else {
+            this.id = validateUUID(id);
+            this.date = validateDate(date);
         };
-        const result = await dbSDK.getTodo(todo);
+        this.name = validateName(name);
+    };
+};
+
+/** The DynamoDB client instance used to execute commands. */
+const ddbClient: ddb.DynamoDBClient = new ddb.DynamoDBClient({});
+
+export async function getAllToDos(): Promise<APIGatewayProxyResult> {
+    try {
+        // Parse the request body to extract all the ToDos
+        const { Items } = await ddbClient.send(new ddb.ScanCommand(new DefaultParams));
+
+        const resultItems =
+            (Items === undefined || Items.length === 0) ?
+                [] :
+                parseItems(Items);
+
+        // Return a successful response
+        return new ApiSuccessResponse({ items: resultItems });
+    }
+    catch (error) { return new ApiErrorResponse(error); };
+};
+
+async function setTodo(body: string | null): Promise<ApiResponse> {
+    // Check if the required body is empty
+    if (body === null) throw new BadRequestError("Empty request body");
+
+    // Check if the required fields are present in the request body and are valid
+    const { id, date, name } = JSON.parse(body);
+
+    // Set the ToDo into the database
+    const toDo = new ToDo(id, date, name);
+    await ddbClient.send(new ddb.PutItemCommand(new ItemParams(toDo)));
+
+    // Return a successful response
+    return new ApiSuccessResponse({ message: "IToDo created", item: toDo });
+};
+
+export async function postToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try { return setTodo(event.body); }
+    catch (error) { return new ApiErrorResponse(error); };
+};
+
+export async function putToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try { return setTodo(event.body); }
+    catch (error) { return new ApiErrorResponse(error); };
+};
+
+/** Returns a ToDo if it matches it's Primary key */
+export async function getToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try {
+        const result = await ddbClient.send(new ddb.GetItemCommand(
+            validateQuery(event.queryStringParameters)
+        ));
 
         if (result.Item === undefined) throw new NotFoundError("There are no matching ToDo");
 
-        // Return a successful response
-        response = new ApiSuccessResponse({ item: dbSDK.parseItem(result.Item) });
+        return new ApiSuccessResponse({ item: parseItem(result.Item) });
     }
-    catch (error) {
-        response = new ApiErrorResponse(error);
-    }
-
-    return response;
+    catch (error) { return new ApiErrorResponse(error); };
 };
 
-export async function postTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+/** Delete a ToDo if it matches it's Primary key */
+export async function deleteToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
-        // Check if the required body is empty
-        if (event.body === null) throw new BadRequestError("Empty request body");
+        await ddbClient.send(new ddb.DeleteItemCommand(
+            validateQuery(event.queryStringParameters)
+        ));
 
-        // Parse the request body to extract the ToDo item
-        const requestBody = JSON.parse(event.body);
-
-        // Check if the required fields are present in the request body
-        validateName(requestBody.name);
-
-        // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
-        const todo: dbSDK.toDoBodyParameters = {
-            id: randomUUID(),
-            date: new Date().toISOString(),
-            name: requestBody.name
-        };
-        await dbSDK.setToDo(todo);
-
-        // Return a successful response
-        response = new ApiSuccessResponse({ message: "ToDo created", item: todo });
+        return new ApiSuccessResponse({ message: "ToDo deleted" });
     }
-    catch (error) {
-        response = new ApiErrorResponse(error);
+    catch (error) { return new ApiErrorResponse(error); };
+};
+
+/** Takes an object and formats its keys and values into an object with DynamoDB attribute values. */
+function formatItems(params: { [key: string]: any }): { [key: string]: ddb.AttributeValue } {
+    const formattedKey: { [key: string]: ddb.AttributeValue } = {};
+    for (const key in params) {
+        const value = params[key];
+        switch (typeof value) {
+            case 'string':
+                formattedKey[key] = { S: value };
+                break;
+            case 'number':
+                formattedKey[key] = { N: value.toString() };
+                break;
+            case 'boolean':
+                formattedKey[key] = { BOOL: value };
+                break;
+            case 'object':
+                if (value instanceof Date) formattedKey[key] = { S: value.toISOString() };
+                else throw new Error(`Invalid data type for key attribute '${key}'.`);
+                break;
+            default:
+                throw new Error(`Invalid data type for key attribute '${key}'.`);
+        };
     };
-
-    return response;
+    return formattedKey;
 };
 
-export async function putTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try {
-        // Check if the required body is empty
-        if (event.body === null) throw new BadRequestError("Empty request body");
+/** Takes an array of items and returns an array of parsed items. */
+function parseItems(items: Record<string, ddb.AttributeValue>[]): { [key: string]: any }[] {
+    return items.map((item) => parseItem(item));
+};
 
-        // Parse the request body to extract the ToDo item
-        const requestBody = JSON.parse(event.body);
-        const { id, date, name } = requestBody;
+/** Takes in a data object representing an item in a DynamoDB table and returns a parsed version of the data with appropriate data types. */
+function parseItem(data: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
+    const parsedData: { [key: string]: any } = {};
 
-        // Check if the required fields are present in the request body and are valid
-        validateUUID(id);
-        validateDate(date);
-        validateName(name);
+    for (const key in data) {
+        const value = data[key];
 
-        // Call the putToDo method of DynamodbSDK to add the new ToDo item to the table
-        const todo: dbSDK.toDoBodyParameters = {
-            id: id,
-            date: date,
-            name: name
+        switch (true) {
+            case 'S' in value:
+                const stringValue = value.S as string;
+                const isDate = new Date(stringValue) instanceof Date && !isNaN(new Date(stringValue).getTime());
+                parsedData[key] = isDate ? new Date(stringValue) : stringValue;
+                break;
+            case 'N' in value:
+                parsedData[key] = parseFloat(value.N as string);
+                break;
+            case 'BOOL' in value:
+                parsedData[key] = value.BOOL;
+                break;
+            default:
+                throw new Error(`Invalid data type for attribute '${key}'.`);
         };
-        await dbSDK.setToDo(todo);
-
-        // Return a successful response
-        response = new ApiSuccessResponse({ message: "ToDo created", item: todo });
-    }
-    catch (error) {
-        response = new ApiErrorResponse(error);
     };
-
-    return response;
+    return parsedData;
 };
 
-export async function deleteTodo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try {
-        // Check if the required Query Parameters are empty
-        if (event.queryStringParameters === null) throw new BadRequestError("Empty request parameters");
+/** Check if the Query Parameters are valid*/
+function validateQuery(params: APIGatewayProxyEventQueryStringParameters | null): KeyParams {
+    if (params === null) throw new BadRequestError("Empty request parameters");
 
-        // Check if the required fields are present in the request body
-        const { id, date } = event.queryStringParameters;
-        validateUUID(id);
-        validateDate(date);
-
-        // Call the deleteToDo method of DynamodbSDK to delete a ToDo item from the table
-        const todo: dbSDK.toDoQueryParameters = {
-            id: id!,
-            date: date!
-        };
-        await dbSDK.deleteToDo(todo);
-
-        response = new ApiSuccessResponse({ message: "ToDo deleted" });
-    }
-    catch (error) {
-        response = new ApiErrorResponse(error);
-    }
-
-    return response;
+    const { id, date } = params;
+    return new KeyParams(validateUUID(id), validateDate(date));
 };
 
-function validateUUID(uuid: any) {
+/** Check if the id is a valid UUID */
+function validateUUID(uuid: any): string {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
     if (uuid === undefined) throw new BadRequestError("The 'id' property is required");
     else if (!uuidRegex.test(uuid)) throw new BadRequestError("The 'id' property must be a valid uuid");
+    
+    return uuid;
 };
 
-function validateDate(dateStr: any) {
-    if (dateStr === undefined) throw new BadRequestError("The 'date' property is required");
+/** Check if the date is in ISO format */
+function validateDate(date: any): string {
+    if (date === undefined) throw new BadRequestError("The 'date' property is required");
     else {
         const isoDateRegex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
-        if (!isoDateRegex.test(dateStr)) throw new BadRequestError("The 'date' property is not a valid ISO date");
+        if (!isoDateRegex.test(date)) throw new BadRequestError("The 'date' property is not a valid ISO date");
     };
+
+    return date;
 };
 
-function validateName(name: any) {
+/** Check if the name's type is string and is not empty */
+function validateName(name: any): string {
     if (name === undefined) throw new BadRequestError("The 'name' property is required");
     else if (typeof name !== 'string') throw new BadRequestError("The 'name' property must be a string");
     else if (name.length < 1) throw new BadRequestError("The 'name' property cannot be empty");
+
+    return name;
 };
