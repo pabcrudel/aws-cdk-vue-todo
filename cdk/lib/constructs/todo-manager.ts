@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 
 let tableName: string;
@@ -27,9 +27,9 @@ export class ToDoManagerConstruct extends Construct {
         tableName = todoTable.tableName;
 
         /** Rest Api to communicate frontend with DynamoDB ToDo table */
-        const todoRestApi = new apigw.RestApi(this, "ToDoRestApi", {
+        const todoRestApi = new apiGateway.RestApi(this, "ToDoRestApi", {
             defaultCorsPreflightOptions: {
-                allowOrigins: apigw.Cors.ALL_ORIGINS,
+                allowOrigins: apiGateway.Cors.ALL_ORIGINS,
             },
             deploy: true,
         });
@@ -59,19 +59,19 @@ export class ToDoManagerConstruct extends Construct {
         todoTable.grantWriteData(deleteToDo);
 
         // Add the HTTP request type method to the root resource using the Lambda integration.
-        todoRestApi.root.addMethod("GET", new apigw.LambdaIntegration(getAllToDos));
-        todoRestApi.root.addMethod("POST", new apigw.LambdaIntegration(postToDo));
-        todoRestApi.root.addMethod("PUT", new apigw.LambdaIntegration(putToDo));
-        todoRestApi.root.addMethod("DELETE", new apigw.LambdaIntegration(deleteToDo));
+        todoRestApi.root.addMethod("GET", new apiGateway.LambdaIntegration(getAllToDos));
+        todoRestApi.root.addMethod("POST", new apiGateway.LambdaIntegration(postToDo));
+        todoRestApi.root.addMethod("PUT", new apiGateway.LambdaIntegration(putToDo));
+        todoRestApi.root.addMethod("DELETE", new apiGateway.LambdaIntegration(deleteToDo));
 
         // Add a "GET" method to the child resource using the specified Lambda integration.
         const todoRestApiChildResource = todoRestApi.root.addResource('filter');
-        todoRestApiChildResource.addMethod("GET", new apigw.LambdaIntegration(getToDo));
+        todoRestApiChildResource.addMethod("GET", new apiGateway.LambdaIntegration(getToDo));
 
         /** Allow OPTIONS request without restrictions */
         const optionsMethods = todoRestApi.methods.filter(method => method.httpMethod === 'OPTIONS')
         optionsMethods.forEach(method => {
-            const cfnMethod = method.node.defaultChild as apigw.CfnMethod
+            const cfnMethod = method.node.defaultChild as apiGateway.CfnMethod
             cfnMethod.addPropertyOverride('ApiKeyRequired', false)
             cfnMethod.addPropertyOverride('AuthorizationType', 'NONE')
             cfnMethod.addPropertyDeletionOverride('AuthorizerId')
