@@ -10,6 +10,13 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       toDos: [] as IToDo[],
     }
   },
+  getters: {
+    getToDoByPrimaryKey: (state) => {
+      return (id: string, date: string): IToDo | undefined => state.toDos.find(toDo =>
+        toDo.id === id && toDo.date === date
+      );
+    },
+  },
   actions: {
     async getAllToDos() {
       try {
