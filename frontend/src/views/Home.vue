@@ -15,7 +15,7 @@
       <button v-html="'Update'" @click="showDialog[toDo.name] = !showDialog[toDo.name]" />
     </template>
 
-    <div v-else v-html="'ToDo table is empty'" />
+    <div v-else v-html="'You don\'t have any todo'" />
   </div>
 </template>
 
