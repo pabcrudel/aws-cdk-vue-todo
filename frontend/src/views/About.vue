@@ -1,5 +1,5 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    <h1>Hi! I'm Pablo, the developer of Vue-ToDo</h1>
   </div>
 </template>
