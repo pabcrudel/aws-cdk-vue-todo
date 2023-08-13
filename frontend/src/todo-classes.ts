@@ -1,8 +1,8 @@
 import type {IToDoPrimaryKey, IToDoAttributes} from '../../common-types.d.ts';
 
 export class ToDoPrimaryKey implements IToDoPrimaryKey {
-    id: string;
-    date: string;
+    readonly id: string;
+    readonly date: string;
     
     constructor(id: string, date: string) {
         this.id = id;
