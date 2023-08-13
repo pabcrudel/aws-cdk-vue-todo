@@ -20,7 +20,7 @@
   </template>
   
   <script setup lang="ts">
-  import { toRefs, ref, type Ref } from 'vue';
+  import { toRefs, ref } from 'vue';
   import { useToDoApiStore } from '../stores/todo-api';
   import EditToDo from '@/components/EditToDo.vue';
   
