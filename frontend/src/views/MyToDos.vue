@@ -10,7 +10,7 @@
             />
             <li v-else v-html="toDo.name" />
             <button v-html="'Delete'" @click="toDoApi.deleteToDo(toDo)" />
-            <button v-html="'Update'" @click="showDialog[toDo.name] = !showDialog[toDo.name]" />
+            <button v-html="showDialog[toDo.name] ? 'Close' : 'Update'" @click="showDialog[toDo.name] = !showDialog[toDo.name]" />
         </template>
 
         <template v-else>
