@@ -2,14 +2,14 @@
     <form @submit.prevent="sendRequest()" class="editToDo">
         <fieldset>
             <label for="todoName" v-html="'ToDo name: '" />
-            <input id="todoName" type="text" :placeholder="props.initialText" v-model="toDo.name" />
+            <input id="todoName" ref="todoName" type="text" :placeholder="props.initialText" v-model="toDo.name" />
             <button type="submit" v-html="'Send'" :disabled="disableButton" />
         </fieldset>
     </form>
 </template>
   
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { ToDoPrimaryKey, ToDoAttributes } from '../todo-classes';
 import { useToDoApiStore } from '../stores/todo-api';
 
@@ -37,5 +37,10 @@ function sendRequest() {
         else toDoApi.updateToDo(props.primaryKey, toDo.value);
     };
 };
+
+const todoName = ref<HTMLInputElement | null>(null);
+onMounted(() => {
+    if (todoName.value) todoName.value.focus();
+});
 </script>
   
