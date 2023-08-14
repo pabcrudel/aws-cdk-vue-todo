@@ -22,6 +22,7 @@ const props = defineProps({
         default: "Eat more vegetables",
     },
 });
+const emit = defineEmits(['formSubmitted']);
 
 const toDoApi = useToDoApiStore();
 
@@ -36,6 +37,8 @@ function sendRequest() {
         if (props.primaryKey === undefined || props.attributes === undefined)
             toDoApi.createToDo(toDo.value);
         else toDoApi.updateToDo(props.primaryKey, toDo.value);
+
+        emit('formSubmitted');
     };
 };
 

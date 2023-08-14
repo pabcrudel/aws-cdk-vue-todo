@@ -3,13 +3,15 @@
         <h1>My ToDos</h1>
 
         <template v-if="toDos.length > 0">
-            <EditToDo v-if="isCreating" />
+            <EditToDo v-if="isCreating" @formSubmitted="switchCreating"/>
             <button @click="switchCreating" v-html="isCreating ? 'Close' : 'Create a new ToDo'" />
 
             <template v-for="toDo in toDos" :key="toDo.name">
                 <EditToDo v-if="isEditing(toDo.id)" 
                     :primary-key="new ToDoPrimaryKey(toDo.id, toDo.date)"
-                    :attributes="new ToDoAttributes(toDo.name)" />
+                    :attributes="new ToDoAttributes(toDo.name)" 
+                    @formSubmitted="isEditing(toDo.id)"
+                />
                 <li v-else v-html="toDo.name" />
 
                 <button @click="toDoApi.deleteToDo(toDo)" v-html="'Delete'" />
@@ -19,7 +21,7 @@
 
         <template v-else>
             <div v-html="'You don\'t have any todo'" />
-            <EditToDo v-if="isCreating" />
+            <EditToDo v-if="isCreating" @formSubmitted="switchCreating"/>
             <button @click="switchCreating" v-html="isCreating ? 'Close' : 'Try adding a new one'" />
         </template>
     </div>
@@ -55,5 +57,9 @@ watch(toDoApi.$state, (state) => {
         return { id: toDo.id, show: false };
     });
 });
+
+function handleFormSubmitted() {
+    switchCreating();
+}
 </script>
   
