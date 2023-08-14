@@ -9,10 +9,10 @@
 </template>
   
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { ToDoPrimaryKey, ToDoAttributes } from '../todo-classes';
 import { useToDoApiStore } from '../stores/todo-api';
-import { onKeyStroke } from '@vueuse/core'
+import { onKeyStroke, useFocus } from '@vueuse/core'
 
 const props = defineProps({
     primaryKey: ToDoPrimaryKey,
@@ -51,9 +51,7 @@ function hasChanged() {
 };
 
 const todoName = ref<HTMLInputElement | null>(null);
-onMounted(() => {
-    if (todoName.value) todoName.value.focus();
-});
+useFocus(todoName, { initialValue: true });
 
 onKeyStroke('Enter', (e) => {
     e.preventDefault();
