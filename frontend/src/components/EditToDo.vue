@@ -36,10 +36,18 @@ function sendRequest() {
     if (toDo.value.name.length > 0) {
         if (props.primaryKey === undefined || props.attributes === undefined)
             toDoApi.createToDo(toDo.value);
-        else toDoApi.updateToDo(props.primaryKey, toDo.value);
+        else if (hasChanged())
+            toDoApi.updateToDo(props.primaryKey, toDo.value);
 
         emit('formSubmitted');
     };
+};
+
+function hasChanged() {
+    const attributes = props.attributes!;
+    return Object.keys(attributes).some(key =>
+        attributes[key as keyof ToDoAttributes] !== toDo.value[key as keyof ToDoAttributes]
+    );
 };
 
 const todoName = ref<HTMLInputElement | null>(null);
@@ -48,8 +56,8 @@ onMounted(() => {
 });
 
 onKeyStroke('Enter', (e) => {
-  e.preventDefault();
-  sendRequest();
+    e.preventDefault();
+    sendRequest();
 });
 </script>
   
