@@ -10,7 +10,7 @@
                 <EditToDo v-if="isEditing(toDo.id)" 
                     :primary-key="new ToDoPrimaryKey(toDo.id, toDo.date)"
                     :attributes="new ToDoAttributes(toDo.name)" 
-                    @formSubmitted="isEditing(toDo.id)"
+                    @formSubmitted="switchEditing(toDo.id)"
                 />
                 <li v-else v-html="toDo.name" />
 
@@ -57,9 +57,5 @@ watch(toDoApi.$state, (state) => {
         return { id: toDo.id, show: false };
     });
 });
-
-function handleFormSubmitted() {
-    switchCreating();
-}
 </script>
   
