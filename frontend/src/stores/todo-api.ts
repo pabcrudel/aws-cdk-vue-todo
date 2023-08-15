@@ -13,7 +13,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
   getters: {
     getToDoByPrimaryKey: (state) => {
       return (primaryKey: IToDoPrimaryKey): IToDo | undefined => state.toDos.find(toDo =>
-        toDo.id === primaryKey.id && toDo.date === primaryKey.date
+        toDo.primaryKey.isEquals(primaryKey)
       );
     },
   },
@@ -26,25 +26,18 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       catch (error) { console.log(error) };
     },
     async createToDo(attributes: IToDoAttributes) {
-      const { name } = attributes;
-
       try {
-        const apiResponse = await apiClient.post('', {
-          "name": name
-        });
+        const apiResponse = await apiClient.post('', attributes);
         this.toDos.push(apiResponse.data.item);
       }
       catch (error) { console.log(error) };
     },
-    async updateToDo(primaryKey: IToDoPrimaryKey, attributes: IToDoAttributes) {
-      console.log('updateToDo')
-      const toDoToUpdate = {...primaryKey, ...attributes};
-
+    async updateToDo(toDoToUpdate: IToDo) {
       try {
         await apiClient.put('', toDoToUpdate);
         this.toDos.map(toDo => {
-          if (toDo.id === toDoToUpdate.id && toDo.date === toDoToUpdate.date)
-            toDo.name = toDoToUpdate.name;
+          if (toDo.primaryKey.isEquals(toDoToUpdate.primaryKey))
+            toDo.attributes === toDoToUpdate.attributes;
         });
       }
       catch (error) { console.log(error) };
@@ -52,10 +45,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
     async deleteToDo(toDo: IToDo) {
       try {
         await apiClient.delete('', {
-          params: {
-            "id": toDo.id,
-            "date": toDo.date
-          },
+          params: toDo.primaryKey,
         });
         this.removeToDo(toDo);
       }
@@ -63,7 +53,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
     },
     removeToDo(toDoToRemove: IToDo) {
       this.toDos = this.toDos.filter(toDo => {
-        return toDo.id !== toDoToRemove.id || toDo.date !== toDoToRemove.date
+        return toDo.isEquals(toDoToRemove);
       });
     },
   },

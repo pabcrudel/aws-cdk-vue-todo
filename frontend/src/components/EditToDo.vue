@@ -2,7 +2,7 @@
     <form @submit.prevent="sendRequest()" class="editToDo">
         <fieldset>
             <label for="todoName" v-html="'ToDo name: '" />
-            <input id="todoName" ref="todoName" type="text" :placeholder="'Eat more vegetables'" v-model="toDo.name" />
+            <input id="todoName" ref="todoName" type="text" :placeholder="'Eat more vegetables'" v-model="toDoAttributes.name" />
             <button type="submit" v-html="'Send'" :disabled="disableButton" />
         </fieldset>
     </form>
@@ -10,7 +10,7 @@
   
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ToDoPrimaryKey, ToDoAttributes } from '../todo-classes';
+import { ToDoPrimaryKey, ToDoAttributes, ToDo } from '../todo-classes';
 import { useToDoApiStore } from '../stores/todo-api';
 import { onKeyStroke, useFocus } from '@vueuse/core';
 
@@ -22,25 +22,25 @@ const emit = defineEmits(['formSubmitted']);
 
 const toDoApi = useToDoApiStore();
 
-const toDo = ref(props.attributes || new ToDoAttributes(''));
+const toDoAttributes = ref(props.attributes || new ToDoAttributes(''));
 
 const disableButton = computed(() => {
-    return toDo.value.name.length < 1;
+    return toDoAttributes.value.name.length < 1;
 });
 
 function sendRequest() {
-    if (toDo.value.name.length > 0) {
+    if (toDoAttributes.value.name.length > 0) {
         if (props.primaryKey === undefined || props.attributes === undefined)
-            toDoApi.createToDo(toDo.value);
+            toDoApi.createToDo(toDoAttributes.value);
         else if (hasChanged())
-            toDoApi.updateToDo(props.primaryKey, toDo.value);
+            toDoApi.updateToDo(new ToDo(props.primaryKey, toDoAttributes.value));
 
         emit('formSubmitted');
     };
 };
 
 function hasChanged() {
-    return !toDo.value.isEquals(new ToDoAttributes(toDoApi.getToDoByPrimaryKey(props.primaryKey!)?.name!));
+    return !toDoApi.getToDoByPrimaryKey(props.primaryKey!)?.attributes.isEquals(toDoAttributes.value);
 };
 
 const todoName = ref<HTMLInputElement | null>(null);
