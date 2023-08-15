@@ -232,29 +232,29 @@ function parseItems(items: Record<string, ddb.AttributeValue>[]): { [key: string
 };
 
 /** Takes in a data object representing an item in a DynamoDB table and returns a parsed version of the data with appropriate data types. */
-function parseItem(data: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
-    const parsedData: { [key: string]: any } = {};
+function parseItem(item: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
+    const parsedItem: { [key: string]: any } = {};
 
-    for (const key in data) {
-        const value = data[key];
+    for (const key in item) {
+        const value = item[key];
 
         switch (true) {
             case 'S' in value:
                 const stringValue = value.S as string;
                 const isDate = new Date(stringValue) instanceof Date && !isNaN(new Date(stringValue).getTime());
-                parsedData[key] = isDate ? new Date(stringValue) : stringValue;
+                parsedItem[key] = isDate ? new Date(stringValue) : stringValue;
                 break;
             case 'N' in value:
-                parsedData[key] = parseFloat(value.N as string);
+                parsedItem[key] = parseFloat(value.N as string);
                 break;
             case 'BOOL' in value:
-                parsedData[key] = value.BOOL;
+                parsedItem[key] = value.BOOL;
                 break;
             default:
                 throw new Error(`Invalid data type for attribute '${key}'.`);
         };
     };
-    return parsedData;
+    return parsedItem;
 };
 
 /** Check if the Query Parameters are valid*/
