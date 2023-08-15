@@ -1,8 +1,14 @@
 export interface IToDoPrimaryKey {
-    id: string;
-    date: string;
+    readonly id: string;
+    readonly date: string;
+    isEquals(obj: Object): boolean;
 };
 export interface IToDoAttributes {
     name: string;
+    isEquals(obj: Object): boolean;
 };
-export interface IToDo extends IToDoPrimaryKey, IToDoAttributes {};
+export interface IToDo {
+    readonly primaryKey: IToDoPrimaryKey;
+    attributes: IToDoAttributes;
+    isEquals(obj: Object): boolean;
+};

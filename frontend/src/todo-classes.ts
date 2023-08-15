@@ -8,6 +8,12 @@ export class ToDoPrimaryKey implements IToDoPrimaryKey {
         this.id = id;
         this.date = date;
     };
+
+    isEquals(obj: Object): boolean {
+        return obj instanceof ToDoPrimaryKey &&
+            obj.id === this.id &&
+            obj.date === this.date;
+    };
 };
 
 export class ToDoAttributes implements IToDoAttributes {
@@ -18,10 +24,6 @@ export class ToDoAttributes implements IToDoAttributes {
     };
 
     isEquals(obj: Object): boolean {
-        let isEq: boolean = false;
-
-        if (obj instanceof ToDoAttributes) isEq = obj.name === this.name;
-
-        return isEq;
+        return obj instanceof ToDoAttributes && obj.name === this.name;
     };
 };

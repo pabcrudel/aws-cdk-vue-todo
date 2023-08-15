@@ -5,7 +5,7 @@ import {
     APIGatewayProxyEventQueryStringParameters
 } from "aws-lambda";
 import { randomUUID } from "crypto";
-import type { IToDo } from '../../common-types';
+import type { IToDoPrimaryKey, IToDoAttributes, IToDo } from '../../common-types';
 
 class ApiError extends Error {
     statusCode: number;
@@ -77,21 +77,56 @@ class ItemParams extends DefaultParams {
     };
 };
 
-class ToDo implements IToDo {
-    readonly name: string;
+class ToDoPrimaryKey implements IToDoPrimaryKey {
     readonly id: string;
     readonly date: string;
 
+    constructor(id: string, date: string) {
+        this.id = id;
+        this.date = date;
+    };
+
+    isEquals(obj: Object): boolean {
+        let isEq: boolean = false;
+
+        if (obj instanceof ToDoPrimaryKey)
+            isEq = obj.id === this.id && obj.date === this.date;
+
+        return isEq;
+    };
+};
+class ToDoAttributes implements IToDoAttributes {
+    name: string;
+
+    constructor(name: string) {
+        this.name = name;
+    };
+
+    isEquals(obj: Object): boolean {
+        let isEq: boolean = false;
+
+        if (obj instanceof ToDoAttributes) isEq = obj.name === this.name;
+
+        return isEq;
+    };
+};
+class ToDo implements IToDo {
+    readonly primaryKey: ToDoPrimaryKey;
+    readonly attributes: ToDoAttributes;
+
     constructor(id: any, date: any, name: any) {
-        if (id === undefined || date === undefined) {
-            this.id = randomUUID();
-            this.date = new Date().toISOString();
-        }
-        else {
-            this.id = validateUUID(id);
-            this.date = validateDate(date);
-        };
-        this.name = validateName(name);
+        if (id === undefined || date === undefined)
+            this.primaryKey = new ToDoPrimaryKey(randomUUID(), new Date().toISOString());
+        else
+            this.primaryKey = new ToDoPrimaryKey(id, date);
+
+        this.attributes = new ToDoAttributes(validateName(name));
+    };
+
+    isEquals(obj: Object): boolean {
+        return obj instanceof ToDo &&
+            this.primaryKey.isEquals(obj.primaryKey) &&
+            this.attributes.isEquals(obj.attributes);
     };
 };
 
@@ -236,7 +271,7 @@ function validateUUID(uuid: any): string {
 
     if (uuid === undefined) throw new BadRequestError("The 'id' property is required");
     else if (!uuidRegex.test(uuid)) throw new BadRequestError("The 'id' property must be a valid uuid");
-    
+
     return uuid;
 };
 
