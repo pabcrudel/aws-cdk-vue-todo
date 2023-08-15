@@ -2,7 +2,7 @@
     <form @submit.prevent="sendRequest()" class="editToDo">
         <fieldset>
             <label for="todoName" v-html="'ToDo name: '" />
-            <input id="todoName" ref="todoName" type="text" :placeholder="props.initialText" v-model="toDo.name" />
+            <input id="todoName" ref="todoName" type="text" :placeholder="'Eat more vegetables'" v-model="toDo.name" />
             <button type="submit" v-html="'Send'" :disabled="disableButton" />
         </fieldset>
     </form>
@@ -17,10 +17,6 @@ import { onKeyStroke, useFocus } from '@vueuse/core';
 const props = defineProps({
     primaryKey: ToDoPrimaryKey,
     attributes: ToDoAttributes,
-    initialText: {
-        type: String,
-        default: "Eat more vegetables",
-    },
 });
 const emit = defineEmits(['formSubmitted']);
 
