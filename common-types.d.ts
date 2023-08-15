@@ -1,7 +1,8 @@
-export interface IToDoKey {
+export interface IToDoPrimaryKey {
     id: string;
     date: string;
 };
-export interface IToDo extends IToDoKey {
+export interface IToDoAttributes {
     name: string;
 };
+export interface IToDo extends IToDoPrimaryKey, IToDoAttributes {};

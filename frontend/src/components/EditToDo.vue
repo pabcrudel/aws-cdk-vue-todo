@@ -1,35 +1,62 @@
 <template>
-    <div class="editToDo">
-        <input type="text" :placeholder="props.initialText" v-model="toDoName" />
-        <button @click="executeFunction" v-html="'Send'" :disabled="disableButton"/>
-    </div>
+    <form @submit.prevent="sendRequest()" class="editToDo">
+        <fieldset>
+            <label for="todoName" v-html="'ToDo name: '" />
+            <input id="todoName" ref="todoName" type="text" :placeholder="props.initialText" v-model="toDo.name" />
+            <button type="submit" v-html="'Send'" :disabled="disableButton" />
+        </fieldset>
+    </form>
 </template>
   
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { ToDoPrimaryKey, ToDoAttributes } from '../todo-classes';
+import { useToDoApiStore } from '../stores/todo-api';
+import { onKeyStroke, useFocus } from '@vueuse/core';
 
 const props = defineProps({
-    id: String,
-    date: String,
-    initialText: String,
-    sendRequest: Function
+    primaryKey: ToDoPrimaryKey,
+    attributes: ToDoAttributes,
+    initialText: {
+        type: String,
+        default: "Eat more vegetables",
+    },
 });
+const emit = defineEmits(['formSubmitted']);
 
-const toDoName = ref('');
+const toDoApi = useToDoApiStore();
+
+const ogToDo = {...props.attributes};
+const toDo = ref(props.attributes || new ToDoAttributes(''));
 
 const disableButton = computed(() => {
-    return toDoName.value.length < 1;
+    return toDo.value.name.length < 1;
 });
 
-const executeFunction = () => {
-    if (toDoName.value.length > 0 && props.sendRequest !== undefined) {
-        if (props.id !== undefined && props.date !== undefined)
-            props.sendRequest({ name: toDoName.value, id: props.id, date: props.date });
-        else {
-            props.sendRequest(toDoName.value);
-            toDoName.value = '';
-        };
+function sendRequest() {
+    if (toDo.value.name.length > 0) {
+        if (props.primaryKey === undefined || props.attributes === undefined)
+            toDoApi.createToDo(toDo.value);
+        else if (hasChanged())
+            toDoApi.updateToDo(props.primaryKey, toDo.value);
+
+        emit('formSubmitted');
     };
 };
+
+function hasChanged() {
+    const attributes = ogToDo!;
+    return Object.keys(attributes).some(key =>
+        attributes[key as keyof ToDoAttributes] !== toDo.value[key as keyof ToDoAttributes]
+    );
+};
+
+const todoName = ref<HTMLInputElement | null>(null);
+useFocus(todoName, { initialValue: true });
+
+onKeyStroke('Enter', (e) => {
+    e.preventDefault();
+    sendRequest();
+});
 </script>
   

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios';
-import type { IToDo } from '../../../common-types';
+import type { IToDo, IToDoAttributes, IToDoPrimaryKey } from '../../../common-types';
 
 const apiClient = axios.create({ baseURL: import.meta.env.VITE_API_URL });
 
@@ -25,7 +25,9 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async createToDo(name: string) {
+    async createToDo(attributes: IToDoAttributes) {
+      const { name } = attributes;
+
       try {
         const apiResponse = await apiClient.post('', {
           "name": name
@@ -34,7 +36,9 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async updateToDo(toDoToUpdate: IToDo) {
+    async updateToDo(primaryKey: IToDoPrimaryKey, attributes: IToDoAttributes) {
+      const toDoToUpdate = {...primaryKey, ...attributes};
+
       try {
         await apiClient.put('', toDoToUpdate);
         this.toDos.map(toDo => {
