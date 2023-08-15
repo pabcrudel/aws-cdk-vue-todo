@@ -22,7 +22,6 @@ const emit = defineEmits(['formSubmitted']);
 
 const toDoApi = useToDoApiStore();
 
-const ogToDo = {...props.attributes};
 const toDo = ref(props.attributes || new ToDoAttributes(''));
 
 const disableButton = computed(() => {
@@ -41,10 +40,7 @@ function sendRequest() {
 };
 
 function hasChanged() {
-    const attributes = ogToDo!;
-    return Object.keys(attributes).some(key =>
-        attributes[key as keyof ToDoAttributes] !== toDo.value[key as keyof ToDoAttributes]
-    );
+    return !toDo.value.isEquals(new ToDoAttributes(toDoApi.getToDoByPrimaryKey(props.primaryKey!)?.name!));
 };
 
 const todoName = ref<HTMLInputElement | null>(null);
@@ -55,4 +51,3 @@ onKeyStroke('Enter', (e) => {
     sendRequest();
 });
 </script>
-  

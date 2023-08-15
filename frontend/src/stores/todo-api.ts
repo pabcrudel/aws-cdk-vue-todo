@@ -12,8 +12,8 @@ export const useToDoApiStore = defineStore('ToDo Api', {
   },
   getters: {
     getToDoByPrimaryKey: (state) => {
-      return (id: string, date: string): IToDo | undefined => state.toDos.find(toDo =>
-        toDo.id === id && toDo.date === date
+      return (primaryKey: IToDoPrimaryKey): IToDo | undefined => state.toDos.find(toDo =>
+        toDo.id === primaryKey.id && toDo.date === primaryKey.date
       );
     },
   },
@@ -37,6 +37,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       catch (error) { console.log(error) };
     },
     async updateToDo(primaryKey: IToDoPrimaryKey, attributes: IToDoAttributes) {
+      console.log('updateToDo')
       const toDoToUpdate = {...primaryKey, ...attributes};
 
       try {
