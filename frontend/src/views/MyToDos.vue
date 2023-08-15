@@ -7,15 +7,15 @@
             <button @click="switchCreating" v-html="isCreating ? 'Close' : 'Create a new ToDo'" />
 
             <template v-for="toDo in toDos" :key="toDo.name">
-                <EditToDo v-if="isEditing(toDo.id)" 
-                    :primary-key="new ToDoPrimaryKey(toDo.id, toDo.date)"
-                    :attributes="new ToDoAttributes(toDo.name)" 
-                    @formSubmitted="switchEditing(toDo.id)"
+                <EditToDo v-if="isEditing(toDo.primaryKey.id)" 
+                    :primary-key="toDo.primaryKey"
+                    :attributes="toDo.attributes" 
+                    @formSubmitted="switchEditing(toDo.primaryKey.id)"
                 />
-                <li v-else v-html="toDo.name" />
+                <li v-else v-html="toDo.attributes.name" />
 
                 <button @click="toDoApi.deleteToDo(toDo)" v-html="'Delete'" />
-                <button @click="switchEditing(toDo.id)" v-html="isEditing(toDo.id) ? 'Close' : 'Update'" />
+                <button @click="switchEditing(toDo.primaryKey.id)" v-html="isEditing(toDo.primaryKey.id) ? 'Close' : 'Update'" />
             </template>
         </template>
 
@@ -31,7 +31,6 @@
 import { toRefs, ref, watch } from 'vue';
 import { useToDoApiStore } from '../stores/todo-api';
 import EditToDo from '@/components/EditToDo.vue';
-import { ToDoPrimaryKey, ToDoAttributes } from '../todo-classes';
 
 const toDoApi = useToDoApiStore();
 const { toDos } = toRefs(toDoApi);
@@ -54,7 +53,7 @@ function switchEditing(id: string) {
 
 watch(toDoApi.$state, (state) => {
     toDoDetails.value = state.toDos.map(toDo => {
-        return { id: toDo.id, show: false };
+        return { id: toDo.primaryKey.id, show: false };
     });
 });
 </script>
