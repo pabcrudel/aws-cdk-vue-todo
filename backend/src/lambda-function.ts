@@ -63,17 +63,17 @@ class DefaultParams {
 class KeyParams extends DefaultParams {
     readonly Key: Record<string, ddb.AttributeValue>;
 
-    constructor(id: string, date: string) {
+    constructor(primaryKey: ToDoPrimaryKey) {
         super();
-        this.Key = formatItems({ id, date });
+        this.Key = primaryKey.serialize();
     };
 };
 class ItemParams extends DefaultParams {
     readonly Item: Record<string, ddb.AttributeValue>;
 
-    constructor(toDo: IToDo) {
+    constructor(toDo: ToDo) {
         super();
-        this.Item = formatItems(toDo);
+        this.Item = toDo.serialize();
     };
 };
 
@@ -93,6 +93,10 @@ class ToDoPrimaryKey implements IToDoPrimaryKey {
             isEq = obj.id === this.id && obj.date === this.date;
 
         return isEq;
+    };
+
+    serialize(): { [key: string]: ddb.AttributeValue } {
+        return { id: { S: this.id }, date: { S: this.date }};
     };
 };
 class ToDoAttributes implements IToDoAttributes {
@@ -116,8 +120,8 @@ class ToDo implements IToDo {
 
     constructor(name: string)
     constructor(id: string, date: string, name: string)
-    constructor(primaryKey: IToDoPrimaryKey, attributes: IToDoAttributes)
-    constructor(...args: string[] | [IToDoPrimaryKey, IToDoAttributes]) {
+    constructor(primaryKey: ToDoPrimaryKey, attributes: ToDoAttributes)
+    constructor(...args: string[] | [ToDoPrimaryKey, ToDoAttributes]) {
         const howManyArgs = args.length;
         switch (howManyArgs) {
             case 1:
@@ -147,6 +151,9 @@ class ToDo implements IToDo {
     public get getAttributes(): IToDoAttributes {
         return this.attributes;
     };
+    public get getToDo(): IToDo {
+        return this
+    };
 
     isEquals(obj: Object): boolean {
         return obj instanceof ToDo &&
@@ -164,7 +171,7 @@ class ToDo implements IToDo {
     static deserializeItem(item: { [key: string]: ddb.AttributeValue }): ToDo {
         if (typeof item["id"].S === 'string' && typeof item["date"].S === 'string' && typeof item["name"].S === 'string') {
             return new ToDo(item["id"].S, item["date"].S, item["name"].S);
-        } 
+        }
         else throw new Error("ToDo deserialize error: Item types doesn't match ToDo types");
     };
 
@@ -192,28 +199,37 @@ export async function getAllToDos(): Promise<APIGatewayProxyResult> {
     catch (error) { return new ApiErrorResponse(error); };
 };
 
-async function setTodo(body: string | null): Promise<ApiResponse> {
+function validateAttributes(body: string | null): string {
     // Check if the required body is empty
     if (body === null) throw new BadRequestError("Empty request body");
 
     // Check if the required fields are present in the request body and are valid
-    const { id, date, name } = JSON.parse(body);
+    const { name } = JSON.parse(body);
 
-    // Set the ToDo into the database
-    const toDo = new ToDo(id, date, name);
-    await ddbClient.send(new ddb.PutItemCommand(new ItemParams(toDo)));
-
-    // Return a successful response
-    return new ApiSuccessResponse({ message: "ToDo created", item: toDo });
+    return validateName(name);
 };
 
+async function setTodo(toDo: ToDo): Promise<APIGatewayProxyResult> {
+    await ddbClient.send(new ddb.PutItemCommand(new ItemParams(toDo)));
+
+    return new ApiSuccessResponse({ message: "ToDo created", item: toDo });
+}
+
 export async function postToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try { return setTodo(event.body); }
+    try { return await setTodo(new ToDo(validateAttributes(event.body))); }
     catch (error) { return new ApiErrorResponse(error); };
 };
 
 export async function putToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try { return setTodo(event.body); }
+    try {
+        if (event.queryStringParameters === null) throw new BadRequestError("Empty request parameters");
+        const { id, date } = event.queryStringParameters;
+        const primaryKey = new ToDoPrimaryKey(validateUUID(id), validateDate(date));
+
+        const attributes = new ToDoAttributes(validateAttributes(event.body));
+
+        return await setTodo(new ToDo(primaryKey, attributes));
+    }
     catch (error) { return new ApiErrorResponse(error); };
 };
 
@@ -226,7 +242,7 @@ export async function getToDo(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         if (result.Item === undefined) throw new NotFoundError("There are no matching ToDo");
 
-        return new ApiSuccessResponse({ item: parseItem(result.Item) });
+        return new ApiSuccessResponse({ item: ToDo.deserializeItem(result.Item) });
     }
     catch (error) { return new ApiErrorResponse(error); };
 };
@@ -305,7 +321,7 @@ function validateQuery(params: APIGatewayProxyEventQueryStringParameters | null)
     if (params === null) throw new BadRequestError("Empty request parameters");
 
     const { id, date } = params;
-    return new KeyParams(validateUUID(id), validateDate(date));
+    return new KeyParams(new ToDoPrimaryKey(validateUUID(id), validateDate(date)));
 };
 
 /** Check if the id is a valid UUID */
