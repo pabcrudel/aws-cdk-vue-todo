@@ -259,63 +259,6 @@ export async function deleteToDo(event: APIGatewayProxyEvent): Promise<APIGatewa
     catch (error) { return new ApiErrorResponse(error); };
 };
 
-/** Takes an object and formats its keys and values into an object with DynamoDB attribute values. */
-function formatItems(params: { [key: string]: any }): { [key: string]: ddb.AttributeValue } {
-    const formattedKey: { [key: string]: ddb.AttributeValue } = {};
-    for (const key in params) {
-        const value = params[key];
-        switch (typeof value) {
-            case 'string':
-                formattedKey[key] = { S: value };
-                break;
-            case 'number':
-                formattedKey[key] = { N: value.toString() };
-                break;
-            case 'boolean':
-                formattedKey[key] = { BOOL: value };
-                break;
-            case 'object':
-                if (value instanceof Date) formattedKey[key] = { S: value.toISOString() };
-                else throw new Error(`Invalid data type for key attribute '${key}'.`);
-                break;
-            default:
-                throw new Error(`Invalid data type for key attribute '${key}'.`);
-        };
-    };
-    return formattedKey;
-};
-
-/** Takes an array of items and returns an array of parsed items. */
-function parseItems(items: Record<string, ddb.AttributeValue>[]): { [key: string]: any }[] {
-    return items.map((item) => parseItem(item));
-};
-
-/** Takes in a data object representing an item in a DynamoDB table and returns a parsed version of the data with appropriate data types. */
-function parseItem(item: { [key: string]: ddb.AttributeValue }): { [key: string]: any } {
-    const parsedItem: { [key: string]: any } = {};
-
-    for (const key in item) {
-        const value = item[key];
-
-        switch (true) {
-            case 'S' in value:
-                const stringValue = value.S as string;
-                const isDate = new Date(stringValue) instanceof Date && !isNaN(new Date(stringValue).getTime());
-                parsedItem[key] = isDate ? new Date(stringValue) : stringValue;
-                break;
-            case 'N' in value:
-                parsedItem[key] = parseFloat(value.N as string);
-                break;
-            case 'BOOL' in value:
-                parsedItem[key] = value.BOOL;
-                break;
-            default:
-                throw new Error(`Invalid data type for attribute '${key}'.`);
-        };
-    };
-    return parsedItem;
-};
-
 /** Check if the Query Parameters are valid*/
 function validateQuery(params: APIGatewayProxyEventQueryStringParameters | null): KeyParams {
     if (params === null) throw new BadRequestError("Empty request parameters");
