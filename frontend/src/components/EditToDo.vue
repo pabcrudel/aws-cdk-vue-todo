@@ -25,7 +25,8 @@ const emit = defineEmits(['formSubmitted']);
 
 const toDoApi = useToDoApiStore();
 
-const toDoAttributes = ref(props.attributes || new ToDoAttributes(''));
+// Object.assign copies without reference
+const toDoAttributes = ref(Object.assign({}, props.attributes) || new ToDoAttributes(''));
 
 const disableButton = computed(() => {
     return toDoAttributes.value.name.length < 1;
