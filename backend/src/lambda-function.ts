@@ -157,9 +157,15 @@ class ToDo implements IToDo {
     serialize(): { [key: string]: ddb.AttributeValue } {
         return { id: { S: this.primaryKey.id }, date: { S: this.primaryKey.date }, name: { S: this.attributes.name } };
     };
-    deserialize(item: { [key: string]: ddb.AttributeValue }) {
-        this.primaryKey = new ToDoPrimaryKey(item["id"].S!, item["date"].S!);
-        this.attributes = new ToDoAttributes(item["name"].S!);
+
+    static deserializeItems(items: { [key: string]: ddb.AttributeValue }[]) {
+        return items.map((item) => this.deserializeItem(item));
+    };
+    static deserializeItem(item: { [key: string]: ddb.AttributeValue }): ToDo {
+        if (typeof item["id"].S === 'string' && typeof item["date"].S === 'string' && typeof item["name"].S === 'string') {
+            return new ToDo(item["id"].S, item["date"].S, item["name"].S);
+        } 
+        else throw new Error("ToDo deserialize error: Item types doesn't match ToDo types");
     };
 
     private error(msg: string) {
@@ -178,7 +184,7 @@ export async function getAllToDos(): Promise<APIGatewayProxyResult> {
         const resultItems =
             (Items === undefined || Items.length === 0) ?
                 [] :
-                parseItems(Items);
+                ToDo.deserializeItems(Items);
 
         // Return a successful response
         return new ApiSuccessResponse({ items: resultItems });
