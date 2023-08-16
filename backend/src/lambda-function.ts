@@ -111,22 +111,59 @@ class ToDoAttributes implements IToDoAttributes {
     };
 };
 class ToDo implements IToDo {
-    readonly primaryKey: ToDoPrimaryKey;
-    readonly attributes: ToDoAttributes;
+    primaryKey: ToDoPrimaryKey;
+    attributes: ToDoAttributes;
 
-    constructor(id: any, date: any, name: any) {
-        if (id === undefined || date === undefined)
-            this.primaryKey = new ToDoPrimaryKey(randomUUID(), new Date().toISOString());
-        else
-            this.primaryKey = new ToDoPrimaryKey(id, date);
+    constructor(name: string)
+    constructor(id: string, date: string, name: string)
+    constructor(primaryKey: IToDoPrimaryKey, attributes: IToDoAttributes)
+    constructor(...args: string[] | [IToDoPrimaryKey, IToDoAttributes]) {
+        const howManyArgs = args.length;
+        switch (howManyArgs) {
+            case 1:
+                this.primaryKey = new ToDoPrimaryKey(randomUUID(), new Date().toISOString());
+                this.attributes = new ToDoAttributes(validateName(args[0]));
+                break;
+            case 2:
+                if (typeof args[0] !== 'string' && typeof args[1] !== 'string') {
+                    this.primaryKey = args[0];
+                    this.attributes = args[1];
+                }
+                else this.error("The 2-argument constructor cannot be of type string");
+                break;
+            case 3:
+                this.primaryKey = new ToDoPrimaryKey(args[0], args[1]);
+                this.attributes = new ToDoAttributes(validateName(args[2]));
+                break;
+            default:
+                this.error("Incorrect number of allowed parameters (allowed parameters: 1-3)");
+                break;
+        };
+    };
 
-        this.attributes = new ToDoAttributes(validateName(name));
+    public get getPrimaryKey(): IToDoPrimaryKey {
+        return this.primaryKey;
+    };
+    public get getAttributes(): IToDoAttributes {
+        return this.attributes;
     };
 
     isEquals(obj: Object): boolean {
         return obj instanceof ToDo &&
             this.primaryKey.isEquals(obj.primaryKey) &&
             this.attributes.isEquals(obj.attributes);
+    };
+
+    serialize(): { [key: string]: ddb.AttributeValue } {
+        return { id: { S: this.primaryKey.id }, date: { S: this.primaryKey.date }, name: { S: this.attributes.name } };
+    };
+    deserialize(item: { [key: string]: ddb.AttributeValue }) {
+        this.primaryKey = new ToDoPrimaryKey(item["id"].S!, item["date"].S!);
+        this.attributes = new ToDoAttributes(item["name"].S!);
+    };
+
+    private error(msg: string) {
+        throw new Error("ToDo constructor error: " + msg);
     };
 };
 
