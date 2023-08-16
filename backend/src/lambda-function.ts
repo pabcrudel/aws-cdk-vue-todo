@@ -217,7 +217,7 @@ async function setTodo(toDo: ToDo): Promise<APIGatewayProxyResult> {
     await ddbClient.send(new ddb.PutItemCommand(new ItemParams(toDo)));
 
     return new ApiSuccessResponse({ message: "ToDo created", item: toDo });
-}
+};
 
 export async function postToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try { return await setTodo(new ToDo(validateAttributes(event.body))); }

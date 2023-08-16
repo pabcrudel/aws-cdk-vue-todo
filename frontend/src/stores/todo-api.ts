@@ -34,7 +34,9 @@ export const useToDoApiStore = defineStore('ToDo Api', {
     },
     async updateToDo(toDoToUpdate: IToDo) {
       try {
-        await apiClient.put('', toDoToUpdate);
+        await apiClient.put('', toDoToUpdate.attributes, {
+          params: toDoToUpdate.primaryKey
+        });
         this.toDos.map(toDo => {
           if (toDo.primaryKey.isEquals(toDoToUpdate.primaryKey))
             toDo.attributes === toDoToUpdate.attributes;
