@@ -34,7 +34,7 @@ jobs:
             npm ci
             npx cdk deploy --require-approval never -O cdk-output.json
             echo "VITE_API_URL=$(cat cdk-output.json | grep -oP 'https://\S+execute-api\S+amazonaws\.com/prod/')" > ../frontend/.env
-            echo "BUCKET_NAME=$(cat cdk-output.json | grep -oP '\S+websiteresourcebuildings3hostingbuck\S+' | sed 's/"//g')" >> $GITHUB_ENV
+            echo "BUCKET_NAME=$(cat cdk-output.json | grep -oP '\S+websiteresourcebuildings\S+' | sed 's/"//g')" >> $GITHUB_ENV
   
         - name: Build Frontend
           run: |
