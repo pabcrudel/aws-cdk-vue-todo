@@ -3,8 +3,11 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { VueToDoStack } from '../lib/vue-todo-stack';
 
-const tag = process.env.BRANCH_NAME || '';
-const stackName =  tag + '-' + 'VueToDoStack';
+let projectName = 'VueToDoStack';
+
+const tag = process.env.BRANCH_NAME;
+
+if (tag !== undefined) projectName =  tag + '-' + projectName;
 
 const app = new cdk.App();
-new VueToDoStack(app, stackName);
+new VueToDoStack(app, projectName);
