@@ -113,6 +113,10 @@ class ToDoAttributes implements IToDoAttributes {
 
         return isEq;
     };
+
+    serialize(): { [key: string]: ddb.AttributeValue } {
+        return { name: { S: this.name }};
+    };
 };
 class ToDo implements IToDo {
     primaryKey: ToDoPrimaryKey;
@@ -162,7 +166,7 @@ class ToDo implements IToDo {
     };
 
     serialize(): { [key: string]: ddb.AttributeValue } {
-        return { id: { S: this.primaryKey.id }, date: { S: this.primaryKey.date }, name: { S: this.attributes.name } };
+        return { ...this.primaryKey.serialize(), ...this.attributes.serialize() };
     };
 
     static deserializeItems(items: { [key: string]: ddb.AttributeValue }[]) {
