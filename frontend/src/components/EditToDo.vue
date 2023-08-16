@@ -10,14 +10,15 @@
   
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ToDoPrimaryKey, ToDoAttributes, ToDo } from '../todo-classes';
+import { ToDoAttributes, ToDo } from '../todo-classes';
 import { useToDoApiStore } from '../stores/todo-api';
 import { onKeyStroke, useFocus } from '@vueuse/core';
+import type { IToDoAttributes, IToDoPrimaryKey } from '../../../common-types';
 
-const props = defineProps({
-    primaryKey: ToDoPrimaryKey,
-    attributes: ToDoAttributes,
-});
+const props = defineProps<{
+    primaryKey?: IToDoPrimaryKey,
+    attributes?: IToDoAttributes
+}>();
 const emit = defineEmits(['formSubmitted']);
 
 const toDoApi = useToDoApiStore();
