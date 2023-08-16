@@ -1,50 +1,49 @@
 import { defineStore } from 'pinia'
 import axios from 'axios';
-import type { IToDo, IToDoAttributes, IToDoPrimaryKey } from '../../../common-types';
+import { ToDo, ToDoAttributes, ToDoPrimaryKey } from '@/todo-classes';
+import {areEqualToDos, isEqualPrimaryKey} from '../tools';
 
 const apiClient = axios.create({ baseURL: import.meta.env.VITE_API_URL });
 
 export const useToDoApiStore = defineStore('ToDo Api', {
   state: () => {
     return {
-      toDos: [] as IToDo[],
+      toDos: [] as ToDo[],
     }
   },
   getters: {
     getToDoByPrimaryKey: (state) => {
-      return (primaryKey: IToDoPrimaryKey): IToDo | undefined => state.toDos.find(toDo =>
-        toDo.primaryKey.isEquals(primaryKey)
-      );
+      return (primaryKey: ToDoPrimaryKey): ToDo | undefined => state.toDos.find(toDo =>isEqualPrimaryKey(toDo.primaryKey, primaryKey));
     },
   },
   actions: {
     async getAllToDos() {
       try {
         const apiResponse = await apiClient.get('');
-        this.toDos = apiResponse.data.items;
+        this.toDos = apiResponse.data.items as ToDo[];
       }
       catch (error) { console.log(error) };
     },
-    async createToDo(attributes: IToDoAttributes) {
+    async createToDo(attributes: ToDoAttributes) {
       try {
         const apiResponse = await apiClient.post('', attributes);
         this.toDos.push(apiResponse.data.item);
       }
       catch (error) { console.log(error) };
     },
-    async updateToDo(toDoToUpdate: IToDo) {
+    async updateToDo(toDoToUpdate: ToDo) {
       try {
         await apiClient.put('', toDoToUpdate.attributes, {
           params: toDoToUpdate.primaryKey
         });
         this.toDos.map(toDo => {
-          if (toDo.primaryKey.isEquals(toDoToUpdate.primaryKey))
+          if (areEqualToDos(toDo, toDoToUpdate))
             toDo.attributes === toDoToUpdate.attributes;
         });
       }
       catch (error) { console.log(error) };
     },
-    async deleteToDo(toDo: IToDo) {
+    async deleteToDo(toDo: ToDo) {
       try {
         await apiClient.delete('', {
           params: toDo.primaryKey,
@@ -53,9 +52,9 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    removeToDo(toDoToRemove: IToDo) {
+    removeToDo(toDoToRemove: ToDo) {
       this.toDos = this.toDos.filter(toDo => {
-        return toDo.isEquals(toDoToRemove);
+        return !areEqualToDos(toDo, toDoToRemove);
       });
     },
   },
