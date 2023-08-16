@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios';
 import { ToDo, ToDoAttributes, ToDoPrimaryKey } from '@/todo-classes';
-import {areEqualToDos, isEqualPrimaryKey} from '../tools';
+import { areEqualToDos, isEqualPrimaryKey } from '../tools';
 
 const apiClient = axios.create({ baseURL: import.meta.env.VITE_API_URL });
 
@@ -13,7 +13,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
   },
   getters: {
     getToDoByPrimaryKey: (state) => {
-      return (primaryKey: ToDoPrimaryKey): ToDo | undefined => state.toDos.find(toDo =>isEqualPrimaryKey(toDo.primaryKey, primaryKey));
+      return (primaryKey: ToDoPrimaryKey): ToDo | undefined => state.toDos.find(toDo => isEqualPrimaryKey(toDo.primaryKey, primaryKey));
     },
   },
   actions: {
@@ -43,19 +43,14 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       }
       catch (error) { console.log(error) };
     },
-    async deleteToDo(toDo: ToDo) {
+    async deleteToDo(toDoToRemove: ToDo) {
       try {
         await apiClient.delete('', {
-          params: toDo.primaryKey,
+          params: toDoToRemove.primaryKey,
         });
-        this.removeToDo(toDo);
+        this.toDos = this.toDos.filter(toDo => !areEqualToDos(toDo, toDoToRemove));
       }
       catch (error) { console.log(error) };
-    },
-    removeToDo(toDoToRemove: ToDo) {
-      this.toDos = this.toDos.filter(toDo => {
-        return !areEqualToDos(toDo, toDoToRemove);
-      });
     },
   },
 });

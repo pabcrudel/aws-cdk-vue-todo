@@ -21,6 +21,7 @@ export class ToDoAttributes implements IToDoAttributes {
 export class ToDo implements IToDo {
     readonly primaryKey: IToDoPrimaryKey;
     attributes: IToDoAttributes;
+    show: boolean = false;
 
     constructor(id: string, date: string, name: string)
     constructor(primaryKey: IToDoPrimaryKey, attributes: IToDoAttributes)
