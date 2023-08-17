@@ -29,6 +29,7 @@
 import { toRefs, ref } from 'vue';
 import { useToDoApiStore } from '../stores/todo-api';
 import EditToDo from '@/components/EditToDo.vue';
+import { onBeforeRouteLeave } from 'vue-router';
 
 const toDoApi = useToDoApiStore();
 const { toDos } = toRefs(toDoApi);
@@ -48,5 +49,9 @@ function switchEditing(id: string) {
 
     toDos.value.forEach(toDo => toDo.show = toDo.primaryKey.id === id ? !toDo.show : false);
 };
+
+onBeforeRouteLeave(() => {
+    toDos.value.forEach(toDo => toDo.show = false);
+});
 </script>
   
