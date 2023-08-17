@@ -27,7 +27,6 @@ export class WebsiteResourceBuildingConstruct extends Construct {
         new cdk.CfnOutput(this, 'S3BucketName', {
             value: this.s3HostingBucket.bucketName,
             description: 'Bucket name of the s3 hosting bucket',
-            exportName: "S3BucketName"
         });
 
         /** CloudFront Origin Access Identity (OAI) user */
@@ -124,7 +123,6 @@ export class WebsiteResourceBuildingConstruct extends Construct {
         new cdk.CfnOutput(this, 'CloudFrontDomainName', {
             value: cloudfrontDistribution.distributionDomainName,
             description: 'Domain name of the CloudFront distribution',
-            exportName: "WebsiteDomainName"
         });
     };
 };
