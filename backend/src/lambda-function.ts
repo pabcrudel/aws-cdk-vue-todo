@@ -99,8 +99,9 @@ class ToDoPrimaryKey implements IToDoPrimaryKey {
             case 2:
                 this.id = this.validateUUID(args[0]);
                 this.date = this.validateDate(args[1]);
+                break;
             default:
-                throw new Error(`ToDoPrimaryKey constructor error: Incorrect number of allowed parameters\n(allowed parameters: 0-2, there are: ${args.length})`);
+                throw new Error(`ToDoPrimaryKey constructor error: Incorrect number of allowed parameters (allowed parameters: 0-2, there are: ${args.length})`);
                 break;
         };
     };
@@ -183,7 +184,7 @@ class ToDo implements IToDo {
                 this.attributes = ToDoAttributes.withName(args[2]);
                 break;
             default:
-                this.error(`Incorrect number of allowed parameters\n(allowed parameters: 1-3, there are: ${args.length})`);
+                this.error(`Incorrect number of allowed parameters (allowed parameters: 1-3, there are: ${args.length})`);
                 break;
         };
     };
