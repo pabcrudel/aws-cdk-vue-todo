@@ -63,17 +63,17 @@ class DefaultParams {
 class KeyParams extends DefaultParams {
     readonly Key: Record<string, ddb.AttributeValue>;
 
-    constructor(primaryKey: ToDoPrimaryKey) {
+    constructor(primaryKey: Record<string, ddb.AttributeValue>) {
         super();
-        this.Key = primaryKey.serialize();
+        this.Key = primaryKey;
     };
 };
 class ItemParams extends DefaultParams {
     readonly Item: Record<string, ddb.AttributeValue>;
 
-    constructor(toDo: ToDo) {
+    constructor(toDo: Record<string, ddb.AttributeValue>) {
         super();
-        this.Item = toDo.serialize();
+        this.Item = toDo;
     };
 };
 
@@ -81,67 +81,106 @@ class ToDoPrimaryKey implements IToDoPrimaryKey {
     readonly id: string;
     readonly date: string;
 
-    constructor(id: string, date: string) {
-        this.id = id;
-        this.date = date;
+    constructor()
+    constructor(params: APIGatewayProxyEventQueryStringParameters | null)
+    constructor(id: string, date: string)
+    constructor(...args: any[]) {
+        switch (args.length) {
+            case 0:
+                this.id = randomUUID();
+                this.date = new Date().toISOString();
+                break;
+            case 1:
+                if (args[0] === null) throw new BadRequestError("Empty request parameters");
+                const { id, date } = args[0];
+                this.id = this.validateUUID(id);
+                this.date = this.validateDate(date);
+                break;
+            case 2:
+                this.id = this.validateUUID(args[0]);
+                this.date = this.validateDate(args[1]);
+            default:
+                throw new Error("ToDoPrimaryKey constructor error: Incorrect number of allowed parameters (allowed parameters: 0-2)");
+                break;
+        };
     };
 
-    isEquals(obj: Object): boolean {
-        let isEq: boolean = false;
-
-        if (obj instanceof ToDoPrimaryKey)
-            isEq = obj.id === this.id && obj.date === this.date;
-
-        return isEq;
+    public get keyParams(): KeyParams {
+        return new KeyParams(this.serialize());
     };
 
-    serialize(): { [key: string]: ddb.AttributeValue } {
-        return { id: { S: this.id }, date: { S: this.date }};
+    serialize(): Record<string, ddb.AttributeValue> {
+        return { id: { S: this.id }, date: { S: this.date } };
+    };
+
+    validateUUID(uuid: any): string {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+        if (uuid === undefined) throw new BadRequestError("The 'id' property is required");
+        else if (!uuidRegex.test(uuid)) throw new BadRequestError("The 'id' property must be a valid uuid");
+
+        return uuid;
+    };
+
+    validateDate(date: any): string {
+        if (date === undefined) throw new BadRequestError("The 'date' property is required");
+        else {
+            const isoDateRegex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+            if (!isoDateRegex.test(date)) throw new BadRequestError("The 'date' property is not a valid ISO date");
+        };
+
+        return date;
     };
 };
 class ToDoAttributes implements IToDoAttributes {
     name: string;
 
-    constructor(name: string) {
-        this.name = name;
-    };
-
-    isEquals(obj: Object): boolean {
-        let isEq: boolean = false;
-
-        if (obj instanceof ToDoAttributes) isEq = obj.name === this.name;
-
-        return isEq;
+    private constructor(arg: string | null) {
+        this.name = this.validateName(arg);
     };
 
     serialize(): { [key: string]: ddb.AttributeValue } {
-        return { name: { S: this.name }};
+        return { name: { S: this.name } };
+    };
+
+    static withName(name: string): ToDoAttributes {
+        return new ToDoAttributes(name);
+    };
+
+    static withBody(body: string | null): ToDoAttributes {
+        if (body === null) throw new BadRequestError("Empty request body");
+        const { name } = JSON.parse(body);
+        return new ToDoAttributes(body);
+    };
+
+    validateName(name: any): string {
+        if (name === undefined) throw new BadRequestError("The 'name' property is required");
+        else if (typeof name !== 'string') throw new BadRequestError("The 'name' property must be a string");
+        else if (name.length < 1) throw new BadRequestError("The 'name' property cannot be empty");
+
+        return name;
     };
 };
 class ToDo implements IToDo {
     primaryKey: ToDoPrimaryKey;
     attributes: ToDoAttributes;
 
-    constructor(name: string)
+    constructor(body: string | null)
+    constructor(queryParameters: APIGatewayProxyEventQueryStringParameters | null, body: string | null)
     constructor(id: string, date: string, name: string)
-    constructor(primaryKey: ToDoPrimaryKey, attributes: ToDoAttributes)
-    constructor(...args: string[] | [ToDoPrimaryKey, ToDoAttributes]) {
-        const howManyArgs = args.length;
-        switch (howManyArgs) {
+    constructor(...args: any[]) {
+        switch (args.length) {
             case 1:
-                this.primaryKey = new ToDoPrimaryKey(randomUUID(), new Date().toISOString());
-                this.attributes = new ToDoAttributes(validateName(args[0]));
+                this.primaryKey = new ToDoPrimaryKey();
+                this.attributes = ToDoAttributes.withBody(args[0]);
                 break;
             case 2:
-                if (typeof args[0] !== 'string' && typeof args[1] !== 'string') {
-                    this.primaryKey = args[0];
-                    this.attributes = args[1];
-                }
-                else this.error("The 2-argument constructor cannot be of type string");
+                this.primaryKey = new ToDoPrimaryKey(args[0]);
+                this.attributes = ToDoAttributes.withBody(args[1]);
                 break;
             case 3:
                 this.primaryKey = new ToDoPrimaryKey(args[0], args[1]);
-                this.attributes = new ToDoAttributes(validateName(args[2]));
+                this.attributes = ToDoAttributes.withName(args[2]);
                 break;
             default:
                 this.error("Incorrect number of allowed parameters (allowed parameters: 1-3)");
@@ -149,29 +188,20 @@ class ToDo implements IToDo {
         };
     };
 
-    public get getPrimaryKey(): IToDoPrimaryKey {
-        return this.primaryKey;
-    };
-    public get getAttributes(): IToDoAttributes {
-        return this.attributes;
-    };
-    public get getToDo(): IToDo {
-        return this
+    public get itemParams(): ItemParams {
+        return new ItemParams(this.serialize());
     };
 
-    isEquals(obj: Object): boolean {
-        return obj instanceof ToDo &&
-            this.primaryKey.isEquals(obj.primaryKey) &&
-            this.attributes.isEquals(obj.attributes);
-    };
-
+    /** Convert a `ToDo` object into a format that can be stored in DynamoDB */
     serialize(): { [key: string]: ddb.AttributeValue } {
         return { ...this.primaryKey.serialize(), ...this.attributes.serialize() };
     };
 
+    /** Takes an array of DynamoDB items and returns an array of `ToDo` objects. */
     static deserializeItems(items: { [key: string]: ddb.AttributeValue }[]): ToDo[] {
         return items.map((item) => this.deserializeItem(item));
     };
+    /** Convert a DynamoDB item into a `ToDo` object. */
     static deserializeItem(item: { [key: string]: ddb.AttributeValue }): ToDo {
         if (typeof item["id"].S === 'string' && typeof item["date"].S === 'string' && typeof item["name"].S === 'string') {
             return new ToDo(item["id"].S, item["date"].S, item["name"].S);
@@ -179,6 +209,7 @@ class ToDo implements IToDo {
         else throw new Error("ToDo deserialize error: Item types doesn't match ToDo types");
     };
 
+    /** Throws an error with a custom msg */
     private error(msg: string) {
         throw new Error("ToDo constructor error: " + msg);
     };
@@ -187,9 +218,9 @@ class ToDo implements IToDo {
 /** The DynamoDB client instance used to execute commands. */
 const ddbClient: ddb.DynamoDBClient = new ddb.DynamoDBClient({});
 
+/** Retrieve stored ToDos */
 export async function getAllToDos(): Promise<APIGatewayProxyResult> {
     try {
-        // Parse the request body to extract all the ToDos
         const { Items } = await ddbClient.send(new ddb.ScanCommand(new DefaultParams));
 
         const resultItems =
@@ -197,52 +228,33 @@ export async function getAllToDos(): Promise<APIGatewayProxyResult> {
                 [] :
                 ToDo.deserializeItems(Items);
 
-        // Return a successful response
         return new ApiSuccessResponse({ items: resultItems });
     }
     catch (error) { return new ApiErrorResponse(error); };
 };
 
-function validateAttributes(body: string | null): string {
-    // Check if the required body is empty
-    if (body === null) throw new BadRequestError("Empty request body");
-
-    // Check if the required fields are present in the request body and are valid
-    const { name } = JSON.parse(body);
-
-    return validateName(name);
-};
-
+/** Saves or updates a ToDo */
 async function setTodo(toDo: ToDo): Promise<APIGatewayProxyResult> {
-    await ddbClient.send(new ddb.PutItemCommand(new ItemParams(toDo)));
+    await ddbClient.send(new ddb.PutItemCommand(toDo.itemParams));
 
     return new ApiSuccessResponse({ message: "ToDo created", item: toDo });
 };
 
 export async function postToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try { return await setTodo(new ToDo(validateAttributes(event.body))); }
+    try { return await setTodo(new ToDo(event.body)); }
     catch (error) { return new ApiErrorResponse(error); };
 };
 
 export async function putToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    try {
-        if (event.queryStringParameters === null) throw new BadRequestError("Empty request parameters");
-        const { id, date } = event.queryStringParameters;
-        const primaryKey = new ToDoPrimaryKey(validateUUID(id), validateDate(date));
-
-        const attributes = new ToDoAttributes(validateAttributes(event.body));
-
-        return await setTodo(new ToDo(primaryKey, attributes));
-    }
+    try { return await setTodo(new ToDo(event.queryStringParameters, event.body)); }
     catch (error) { return new ApiErrorResponse(error); };
 };
 
 /** Returns a ToDo if it matches it's Primary key */
 export async function getToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
-        const result = await ddbClient.send(new ddb.GetItemCommand(
-            validateQuery(event.queryStringParameters)
-        ));
+        const primaryKey = new ToDoPrimaryKey(event.queryStringParameters);
+        const result = await ddbClient.send(new ddb.GetItemCommand(primaryKey.keyParams));
 
         if (result.Item === undefined) throw new NotFoundError("There are no matching ToDo");
 
@@ -254,49 +266,10 @@ export async function getToDo(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 /** Delete a ToDo if it matches it's Primary key */
 export async function deleteToDo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
-        await ddbClient.send(new ddb.DeleteItemCommand(
-            validateQuery(event.queryStringParameters)
-        ));
+        const primaryKey = new ToDoPrimaryKey(event.queryStringParameters);
+        await ddbClient.send(new ddb.DeleteItemCommand(primaryKey.keyParams));
 
         return new ApiSuccessResponse({ message: "ToDo deleted" });
     }
     catch (error) { return new ApiErrorResponse(error); };
-};
-
-/** Check if the Query Parameters are valid*/
-function validateQuery(params: APIGatewayProxyEventQueryStringParameters | null): KeyParams {
-    if (params === null) throw new BadRequestError("Empty request parameters");
-
-    const { id, date } = params;
-    return new KeyParams(new ToDoPrimaryKey(validateUUID(id), validateDate(date)));
-};
-
-/** Check if the id is a valid UUID */
-function validateUUID(uuid: any): string {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-    if (uuid === undefined) throw new BadRequestError("The 'id' property is required");
-    else if (!uuidRegex.test(uuid)) throw new BadRequestError("The 'id' property must be a valid uuid");
-
-    return uuid;
-};
-
-/** Check if the date is in ISO format */
-function validateDate(date: any): string {
-    if (date === undefined) throw new BadRequestError("The 'date' property is required");
-    else {
-        const isoDateRegex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
-        if (!isoDateRegex.test(date)) throw new BadRequestError("The 'date' property is not a valid ISO date");
-    };
-
-    return date;
-};
-
-/** Check if the name's type is string and is not empty */
-function validateName(name: any): string {
-    if (name === undefined) throw new BadRequestError("The 'name' property is required");
-    else if (typeof name !== 'string') throw new BadRequestError("The 'name' property must be a string");
-    else if (name.length < 1) throw new BadRequestError("The 'name' property cannot be empty");
-
-    return name;
 };
