@@ -32,7 +32,8 @@ import EditToDo from '@/components/EditToDo.vue';
 
 const toDoApi = useToDoApiStore();
 const { toDos } = toRefs(toDoApi);
-toDoApi.getAllToDos();
+
+if (toDos.value.length === 0) toDoApi.getAllToDos();
 
 function isEditing(id: string): boolean { return toDos.value.some(toDo => toDo.primaryKey.id === id && toDo.show) };
 const isCreating = ref(false);
