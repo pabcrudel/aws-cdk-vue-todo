@@ -10,6 +10,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
     return {
       toDos: [] as ToDo[],
       requestInProgress: false,
+      wasHttpRequestSent: false,
     }
   },
   getters: {
@@ -22,9 +23,9 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       this.requestInProgress = true;
 
       try {
-
         const apiResponse = await apiClient.get('');
         this.toDos = apiResponse.data.items as ToDo[];
+        this.wasHttpRequestSent = true;
       }
       catch (error) { console.log(error) };
 
@@ -45,7 +46,7 @@ export const useToDoApiStore = defineStore('ToDo Api', {
       this.requestInProgress = true;
 
       try {
-        const {primaryKey, attributes} = toDoToUpdate;
+        const { primaryKey, attributes } = toDoToUpdate;
         await apiClient.put('', attributes, {
           params: primaryKey
         });

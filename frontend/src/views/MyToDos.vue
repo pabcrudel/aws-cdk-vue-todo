@@ -32,9 +32,9 @@ import EditToDo from '@/components/EditToDo.vue';
 import { onBeforeRouteLeave } from 'vue-router';
 
 const toDoApi = useToDoApiStore();
-const { toDos } = toRefs(toDoApi);
+const { toDos,wasHttpRequestSent } = toRefs(toDoApi);
 
-if (toDos.value.length === 0) toDoApi.getAllToDos();
+if (!wasHttpRequestSent.value) toDoApi.getAllToDos();
 
 function isEditing(id: string): boolean { return toDos.value.some(toDo => toDo.primaryKey.id === id && toDo.show) };
 const isCreating = ref(false);
