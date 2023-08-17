@@ -169,7 +169,7 @@ class ToDo implements IToDo {
         return { ...this.primaryKey.serialize(), ...this.attributes.serialize() };
     };
 
-    static deserializeItems(items: { [key: string]: ddb.AttributeValue }[]) {
+    static deserializeItems(items: { [key: string]: ddb.AttributeValue }[]): ToDo[] {
         return items.map((item) => this.deserializeItem(item));
     };
     static deserializeItem(item: { [key: string]: ddb.AttributeValue }): ToDo {
