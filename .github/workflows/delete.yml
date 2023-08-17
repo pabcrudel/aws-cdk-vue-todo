@@ -30,4 +30,4 @@ jobs:
           run: |
             cd backend
             npm ci
-            npx cdk destroy --require-approval never
+            npx cdk destroy --force
