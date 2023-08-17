@@ -150,8 +150,8 @@ class ToDoAttributes implements IToDoAttributes {
 
     static withBody(body: string | null): ToDoAttributes {
         if (body === null) throw new BadRequestError("Empty request body");
-        const { name } = JSON.parse(body);
-        return new ToDoAttributes(body);
+        const parsedBody = JSON.parse(body);
+        return new ToDoAttributes(parsedBody.name);
     };
 
     validateName(name: any): string {
