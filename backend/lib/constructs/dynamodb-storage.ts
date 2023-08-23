@@ -6,6 +6,9 @@ export class DynamoDBStorage extends Construct {
     /** DynamoDB table for storing ToDo items. */
     readonly todoTable: dynamodb.Table;
 
+    /** Local secondary DynamoDB table name */
+    readonly todoUserTableName = 'ToDoUserTable';
+
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
@@ -20,6 +23,15 @@ export class DynamoDBStorage extends Construct {
             },
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
+        });
+
+        // Local secondary DynamoDB table for sorting by Cognito User
+        this.todoTable.addLocalSecondaryIndex({
+            indexName: this.todoUserTableName,
+            sortKey: {
+                name: 'date',
+                type: dynamodb.AttributeType.STRING
+            },
         });
     };
 };
