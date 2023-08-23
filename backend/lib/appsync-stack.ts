@@ -7,7 +7,7 @@ import { CognitoAuth } from './constructs/cognito-auth';
 import { DynamoDBStorage } from './constructs/dynamodb-storage';
 import path = require('path');
 
-export class appsyncStack extends cdk.Stack {
+export class AppSyncStack extends cdk.Stack {
     private readonly lambdaDataSource: cdk.aws_appsync.LambdaDataSource;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
