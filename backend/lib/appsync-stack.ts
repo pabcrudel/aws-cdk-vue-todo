@@ -27,6 +27,7 @@ export class appsyncStack extends cdk.Stack {
                 SECOND_TABLE_NAME: dynamoDBStorage.todoUserTableName,
             },
         });
+        dynamoDBTable.grantReadWriteData(lambdaNodeFunction);
 
         const graphQLApi = new appsync.GraphqlApi(this, 'GraphQLApi', {
             name: 'ToDosGraphQLApi',
