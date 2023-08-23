@@ -16,7 +16,7 @@ export class appsyncStack extends cdk.Stack {
         const dynamoDBStorage = new DynamoDBStorage(this, 'DynamoDBStorage');
         const dynamoDBTableName = dynamoDBStorage.todoTable.tableName;
 
-        const lambdaFunction = new lambdaNode.NodejsFunction(this, 'LambdaFunction', {
+        const lambdaNodeFunction = new lambdaNode.NodejsFunction(this, 'LambdaNodeFunction', {
             entry: "./lambda-function/index.ts",
             handler: 'main',
             runtime: lambda.Runtime.NODEJS_16_X,
