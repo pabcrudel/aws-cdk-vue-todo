@@ -31,7 +31,7 @@ export class appsyncStack extends cdk.Stack {
 
         const graphQLApi = new appsync.GraphqlApi(this, 'GraphQLApi', {
             name: 'ToDosGraphQLApi',
-            schema: appsync.SchemaFile.fromAsset(path.join(__dirname, 'schema.graphql')),
+            schema: appsync.SchemaFile.fromAsset('./graphql/index.graphql'),
             authorizationConfig: {
                 defaultAuthorization: {
                     authorizationType: appsync.AuthorizationType.USER_POOL,
