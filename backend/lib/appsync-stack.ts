@@ -16,14 +16,14 @@ export class appsyncStack extends cdk.Stack {
         const cognitoAuth = new CognitoAuth(this, 'CognitoAuth');
 
         const dynamoDBStorage = new DynamoDBStorage(this, 'DynamoDBStorage');
-        const dynamoDBTableName = dynamoDBStorage.todoTable.tableName;
+        const dynamoDBTable = dynamoDBStorage.todoTable;
 
         const lambdaNodeFunction = new lambdaNode.NodejsFunction(this, 'LambdaNodeFunction', {
             entry: "./lambda-function/index.ts",
             handler: 'main',
             runtime: lambda.Runtime.NODEJS_16_X,
             environment: {
-                TABLE_NAME: dynamoDBTableName,
+                TABLE_NAME: dynamoDBTable.tableName,
                 SECOND_TABLE_NAME: dynamoDBStorage.todoUserTableName,
             },
         });
@@ -40,14 +40,19 @@ export class appsyncStack extends cdk.Stack {
         });
 
         this.lambdaDataSource = graphQLApi.addLambdaDataSource('LambdaDataSource', lambdaNodeFunction);
-        this.createResolver(true, 'ListToDos');
-        this.createResolver(false, 'CreateToDo');
-        this.createResolver(false, 'UpdateToDo');
-        this.createResolver(false, 'DeleteToDo');
+        this.createQueryResolver('ListToDos');
+        this.createMutationResolver('CreateToDo');
+        this.createMutationResolver('UpdateToDo');
+        this.createMutationResolver('DeleteToDo');
     };
 
-    private createResolver(isQuery: boolean, fieldName: string) {
-        const typeName = isQuery ? 'Query' : 'Mutation';
+    private createQueryResolver(fieldName: string) {
+        this.createResolver('Query', fieldName);
+    };
+    private createMutationResolver(fieldName: string) {
+        this.createResolver('Mutation', fieldName);
+    };
+    private createResolver(typeName: string, fieldName: string) {
         this.lambdaDataSource.createResolver(`${typeName}${fieldName}Resolver`, { typeName, fieldName });
     };
 };
