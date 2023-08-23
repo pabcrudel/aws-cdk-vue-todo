@@ -9,7 +9,7 @@ export class CognitoAuth extends Construct {
 
         /** Cognito User Pool with Email Sign-in Type */
         const userPool = new cognito.UserPool(this, 'UserPool', {
-            selfSignUpEnabled: true, // Allow users to sign up
+            selfSignUpEnabled: true,
             signInAliases: { email: true, username: true, preferredUsername: true },
             keepOriginal: { email: true },
             standardAttributes: {
@@ -33,6 +33,11 @@ export class CognitoAuth extends Construct {
                 deviceOnlyRememberedOnUserPrompt: true
             },
             removalPolicy: cdk.RemovalPolicy.DESTROY,
+        });
+
+        /**A user pool client application that can interact with the user pool. */
+        const userPoolClient = new cognito.UserPoolClient(this, 'AppClient', {
+            userPool: userPool,
         });
     };
 };
