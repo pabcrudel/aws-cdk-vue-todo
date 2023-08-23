@@ -8,6 +8,8 @@ import { DynamoDBStorage } from './constructs/dynamodb-storage';
 import path = require('path');
 
 export class appsyncStack extends cdk.Stack {
+    private readonly lambdaDataSource: cdk.aws_appsync.LambdaDataSource;
+
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
@@ -36,5 +38,16 @@ export class appsyncStack extends cdk.Stack {
                 },
             },
         });
+
+        this.lambdaDataSource = graphQLApi.addLambdaDataSource('LambdaDataSource', lambdaNodeFunction);
+        this.createResolver(true, 'ListToDos');
+        this.createResolver(false, 'CreateToDo');
+        this.createResolver(false, 'UpdateToDo');
+        this.createResolver(false, 'DeleteToDo');
+    };
+
+    private createResolver(isQuery: boolean, fieldName: string) {
+        const typeName = isQuery ? 'Query' : 'Mutation';
+        this.lambdaDataSource.createResolver(`${typeName}${fieldName}Resolver`, { typeName, fieldName });
     };
 };
