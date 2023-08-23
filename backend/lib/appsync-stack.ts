@@ -41,10 +41,10 @@ export class AppSyncStack extends cdk.Stack {
         });
 
         this.lambdaDataSource = graphQLApi.addLambdaDataSource('LambdaDataSource', lambdaNodeFunction);
-        this.createQueryResolver('ListToDos');
-        this.createMutationResolver('CreateToDo');
-        this.createMutationResolver('UpdateToDo');
-        this.createMutationResolver('DeleteToDo');
+        this.createQueryResolver('listToDos');
+        this.createMutationResolver('createToDo');
+        this.createMutationResolver('updateToDo');
+        this.createMutationResolver('deleteToDo');
     };
 
     private createQueryResolver(fieldName: string) {
@@ -54,6 +54,6 @@ export class AppSyncStack extends cdk.Stack {
         this.createResolver('Mutation', fieldName);
     };
     private createResolver(typeName: string, fieldName: string) {
-        this.lambdaDataSource.createResolver(`${typeName}${fieldName}Resolver`, { typeName, fieldName });
+        this.lambdaDataSource.createResolver(`${fieldName}Resolver`, { typeName, fieldName });
     };
 };

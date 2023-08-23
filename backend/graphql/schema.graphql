@@ -1,4 +1,4 @@
-type ToDo {
+type ToDo @aws_cognito_user_pools {
   userID: ID!
   itemID: ID!
   name: String!
@@ -10,9 +10,9 @@ type Query {
 }
 
 type Mutation {
-  createTask(name: String!): ToDo!
-  updateTask(itemID: ID!, userID: String!, name: String!): ToDo!
-  deleteTask(itemID: ID!, userID: ID!): ToDo!
+  createToDo(name: String!): ToDo!
+  updateToDo(itemID: ID!, userID: String!, name: String!): ToDo!
+  deleteToDo(itemID: ID!, userID: ID!): ToDo!
 }
 
 schema {
