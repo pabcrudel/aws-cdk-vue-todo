@@ -1,14 +1,18 @@
 import * as cdk from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export class CognitoAuth extends Construct {
+    /** Cognito User Pool with Email Sign-in Type */
+    readonly userPool: cognito.IUserPool;
+
+    /**A user pool client application that can interact with the user pool. */
+    readonly userPoolClient: cognito.IUserPoolClient;
+
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
-        /** Cognito User Pool with Email Sign-in Type */
-        const userPool = new cognito.UserPool(this, 'UserPool', {
+        this.userPool = new cognito.UserPool(this, 'UserPool', {
             selfSignUpEnabled: true,
             signInAliases: { email: true, username: true, preferredUsername: true },
             keepOriginal: { email: true },
@@ -35,9 +39,8 @@ export class CognitoAuth extends Construct {
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
 
-        /**A user pool client application that can interact with the user pool. */
-        const userPoolClient = new cognito.UserPoolClient(this, 'AppClient', {
-            userPool: userPool,
+        this.userPoolClient = new cognito.UserPoolClient(this, 'AppClient', {
+            userPool: this.userPool,
         });
     };
 };
