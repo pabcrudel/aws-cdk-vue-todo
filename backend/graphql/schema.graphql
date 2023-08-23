@@ -1,0 +1,21 @@
+type ToDo {
+  userID: ID!
+  itemID: ID!
+  name: String!
+  date: String!
+}
+
+type Query {
+  listToDos: [ToDo!]!
+}
+
+type Mutation {
+  createTask(name: String!): ToDo!
+  updateTask(itemID: ID!, userID: String!, name: String!): ToDo!
+  deleteTask(itemID: ID!, userID: ID!): ToDo!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
