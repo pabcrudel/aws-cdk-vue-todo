@@ -43,7 +43,7 @@ export class AuthApi extends Construct {
                             handler: resource.name,
                             runtime: lambda.Runtime.NODEJS_16_X,
                             environment: {
-                                USER_POOL_ID: props.userPoolID,
+                                USER_POOL_ID: props.userPool.userPoolId,
                                 USER_POOL_CLIENT_ID: props.userPoolClientID,
                             },
                         }

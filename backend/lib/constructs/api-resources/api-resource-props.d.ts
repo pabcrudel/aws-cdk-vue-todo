@@ -1,9 +1,10 @@
 import { IRestApi } from 'aws-cdk-lib/aws-apigateway';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { ITable } from 'aws-cdk-lib/aws-dynamodb';
 
 export interface ApiResourceProps {
     readonly restApi: IRestApi;
-    readonly userPoolID: string;
+    readonly userPool: IUserPool;
     readonly userPoolClientID: string;
 }
 
