@@ -11,7 +11,10 @@ export class AuthApi extends Construct {
         /** API Gateway REST API root resource to handle authentication and registration functionality */
         const authApiRootResource = props.restApi.root.addResource('auth');
 
+        /** Child resource to filter by user id */
         const accountResource = authApiRootResource.addResource('{id}');
+
+        // Iterating over an array of resource objects to create API Gateway child resources for each one
         [
             { name: 'register', parent: authApiRootResource },
             { name: 'login', parent: authApiRootResource },
@@ -21,17 +24,20 @@ export class AuthApi extends Construct {
             { name: 'change-email', parent: accountResource },
         ]
             .forEach(resource => {
+                /** Create a child resource under the parent resource in the API Gateway */
                 const apiResource = resource.parent.addResource(resource.name);
-
+                
+                // Add a CORS preflight OPTIONS
                 apiResource.addCorsPreflight({
                     allowOrigins: apiGateway.Cors.ALL_ORIGINS,
                     allowMethods: ['POST'],
                 });
 
+                // Adding a POST method and a Lambda Integration
                 apiResource.addMethod('POST', new apiGateway.LambdaIntegration(
                     new lambdaNode.NodejsFunction(
                         this,
-                        resource.name.replace(/-([a-z])/g, (_, match) => match.toUpperCase()),
+                        resource.name.replace(/-([a-z])/g, (_, match) => match.toUpperCase()), // = Register / ChangePassword
                         {
                             entry: `./lambda-functions/auth.ts`,
                             handler: resource.name,
