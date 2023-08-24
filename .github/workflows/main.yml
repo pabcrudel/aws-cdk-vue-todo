@@ -33,14 +33,14 @@ jobs:
             cd backend
             npm ci
             npx cdk deploy --require-approval never -O cdk-output.json
-            echo "VITE_API_URL=$(cat cdk-output.json | grep -oP 'https://\S+execute-api\S+amazonaws\.com/prod/')" > ../frontend/.env
-            echo "BUCKET_NAME=$(cat cdk-output.json | grep -oP '\S+websiteresourcebuildings\S+' | sed 's/"//g')" >> $GITHUB_ENV
+        #     echo "VITE_API_URL=$(cat cdk-output.json | grep -oP 'https://\S+execute-api\S+amazonaws\.com/prod/')" > ../frontend/.env
+        #     echo "BUCKET_NAME=$(cat cdk-output.json | grep -oP '\S+websiteresourcebuildings\S+' | sed 's/"//g')" >> $GITHUB_ENV
   
-        - name: Build Frontend
-          run: |
-            cd frontend
-            npm ci
-            npm run build
+        # - name: Build Frontend
+        #   run: |
+        #     cd frontend
+        #     npm ci
+        #     npm run build
 
-        - name: Upload built website to S3
-          run: aws s3 sync frontend/dist s3://${BUCKET_NAME}/ --delete --exact-timestamps
+        # - name: Upload built website to S3
+        #   run: aws s3 sync frontend/dist s3://${BUCKET_NAME}/ --delete --exact-timestamps
