@@ -12,6 +12,12 @@ export class CRUDApi extends Construct {
         /** API Gateway REST API root resource to handle CRUD functionality */
         const crudApiRootResource = props.restApi.root.addResource('crud');
 
+        // Add a CORS preflight OPTIONS
+        crudApiRootResource.addCorsPreflight({
+            allowOrigins: apiGateway.Cors.ALL_ORIGINS,
+            allowMethods: ['GET', 'PUT', 'POST', 'DELETE'],
+        });
+
         /** Cognito User Pools authorizer for theses Api Resources */
         const auth = new apiGateway.CognitoUserPoolsAuthorizer(this, 'CRUDAuthorizer', {
             cognitoUserPools: [props.userPool]
