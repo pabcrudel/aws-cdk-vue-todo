@@ -14,7 +14,7 @@ export class CognitoAuth extends Construct {
 
         this.userPool = new cognito.UserPool(this, 'UserPool', {
             selfSignUpEnabled: true,
-            signInAliases: { email: true, username: true, preferredUsername: true },
+            signInAliases: { email: true, username: true },
             keepOriginal: { email: true },
             standardAttributes: {
                 fullname: { required: true, mutable: true },
