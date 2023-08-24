@@ -16,9 +16,9 @@ export class ApiGatewayStack extends cdk.Stack {
 
         /** Rest Api to communicate frontend with the backend */
         const restApi = new apiGateway.RestApi(this, "RestApi", {
-            defaultCorsPreflightOptions: {
-                allowOrigins: apiGateway.Cors.ALL_ORIGINS,
-            },
+            // defaultCorsPreflightOptions: {
+            //     allowOrigins: apiGateway.Cors.ALL_ORIGINS,
+            // },
             deploy: true,
         });
 
