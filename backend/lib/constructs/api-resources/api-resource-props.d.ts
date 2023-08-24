@@ -9,4 +9,5 @@ export interface ApiResourceProps {
 
 export interface CRUDResourceProps extends ApiResourceProps {
     readonly todoTable: ITable;
+    readonly todoUserTableName: string;
 }
