@@ -13,6 +13,17 @@ export class AuthApi extends Construct {
         const { restApi } = props;
 
         /** API Gateway REST API root resource to handle authentication and registration functionality */
-        const authApiResource = restApi.root.addResource('auth');
+        const authApiRootResource = restApi.root.addResource('auth');
+
+        const accountResource = authApiRootResource.addResource('{id}');
+
+        const postResources = [
+            authApiRootResource.addResource('register'),
+            authApiRootResource.addResource('login'),
+            accountResource.addResource('recovery'),
+            accountResource.addResource('change-password'),
+            accountResource.addResource('change-username'),
+            accountResource.addResource('change-email'),
+        ];
     };
 };
