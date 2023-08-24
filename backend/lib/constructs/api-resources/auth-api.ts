@@ -40,7 +40,7 @@ export class AuthApi extends Construct {
                         resource.name.replace(/-([a-z])/g, (_, match) => match.toUpperCase()), // = Register / ChangePassword
                         {
                             entry: `./lambda-functions/auth.ts`,
-                            handler: resource.name,
+                            handler: resource.name.replace(/-([a-z])/g, (_, match) => match), // = Login / changeUsername
                             runtime: lambda.Runtime.NODEJS_16_X,
                             environment: {
                                 USER_POOL_ID: props.userPool.userPoolId,
