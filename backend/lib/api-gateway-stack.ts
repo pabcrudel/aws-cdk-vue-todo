@@ -22,7 +22,8 @@ export class ApiGatewayStack extends cdk.Stack {
         new AuthApi(this, 'AuthApiResource', {
             restApi,
             userPool,
-            userPoolClientID: userPoolClient.userPoolClientId
+            userPoolClientID: userPoolClient.userPoolClientId,
+            userPoolRegion: this.region,
         });
 
         new CRUDApi(this, 'CRUDApiResource', {

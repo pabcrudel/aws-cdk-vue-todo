@@ -2,10 +2,10 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
-import { ApiResourceProps } from './api-resource-props';
+import { AuthResponseProps } from './api-resource-props';
 
 export class AuthApi extends Construct {
-    constructor(scope: Construct, id: string, props: ApiResourceProps) {
+    constructor(scope: Construct, id: string, props: AuthResponseProps) {
         super(scope, id);
 
         /** API Gateway REST API root resource to handle authentication and registration functionality */
@@ -45,6 +45,7 @@ export class AuthApi extends Construct {
                             environment: {
                                 USER_POOL_ID: props.userPool.userPoolId,
                                 USER_POOL_CLIENT_ID: props.userPoolClientID,
+                                USER_POOL_REGION: props.userPoolRegion,
                             },
                         }
                     )
