@@ -8,17 +8,21 @@ export const register: RequestFunction = async (event) => {
     try {
         if (event.body === null) throw new BadRequestError("Empty request body");
         else {
-            const { password, username, email } = JSON.parse(event.body);
+            const { password, username, email, name } = JSON.parse(event.body);
 
             if (validateString(password)) throw new BadRequestError("Empty password");
             if (validateString(username)) throw new BadRequestError("Empty username");
             if (validateString(email)) throw new BadRequestError("Empty email");
+            if (validateString(name)) throw new BadRequestError("Empty email");
 
             const input: SignUpCommandInput = {
                 ClientId: process.env.USER_POOL_CLIENT_ID,
                 Password: password,
                 Username: username,
-                UserAttributes: [{ Name: "email", Value: email }]
+                UserAttributes: [
+                    { Name: "email", Value: email },
+                    { Name: "name", Value: name },
+                ]
             };
 
             const response = await cognito.send(new SignUpCommand(input));
