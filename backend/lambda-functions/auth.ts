@@ -13,7 +13,7 @@ export const register: RequestFunction = async (event) => {
             if (validateString(password)) throw new BadRequestError("Empty password");
             if (validateString(username)) throw new BadRequestError("Empty username");
             if (validateString(email)) throw new BadRequestError("Empty email");
-            if (validateString(name)) throw new BadRequestError("Empty email");
+            if (validateString(name)) throw new BadRequestError("Empty name");
 
             const input: SignUpCommandInput = {
                 ClientId: process.env.USER_POOL_CLIENT_ID,
