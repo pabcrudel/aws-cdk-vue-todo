@@ -10,6 +10,12 @@ export class AuthApi extends Construct {
 
         /** API Gateway REST API root resource to handle authentication and registration functionality */
         const authApiRootResource = props.restApi.root.addResource('auth');
+                
+        // Add a CORS preflight OPTIONS
+        authApiRootResource.addCorsPreflight({
+            allowOrigins: apiGateway.Cors.ALL_ORIGINS,
+            allowMethods: ['POST'],
+        });
 
         /** Child resource to filter by user id */
         const accountResource = authApiRootResource.addResource('{id}');
@@ -26,12 +32,6 @@ export class AuthApi extends Construct {
             .forEach(resource => {
                 /** Create a child resource under the parent resource in the API Gateway */
                 const apiResource = resource.parent.addResource(resource.name);
-                
-                // Add a CORS preflight OPTIONS
-                apiResource.addCorsPreflight({
-                    allowOrigins: apiGateway.Cors.ALL_ORIGINS,
-                    allowMethods: ['POST'],
-                });
 
                 // Adding a POST method and a Lambda Integration
                 apiResource.addMethod('POST', new apiGateway.LambdaIntegration(
