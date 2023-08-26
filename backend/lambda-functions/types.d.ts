@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 export interface RequestFunction {
-    (event: APIGatewayProxyEvent): APIGatewayProxyResult
+    (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult>
 }
