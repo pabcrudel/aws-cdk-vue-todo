@@ -47,5 +47,5 @@ export const changeEmail: RequestFunction = async (event) => {
 };
 
 function validateString(string: string) {
-    return typeof string !== 'string' || string.length;
+    return typeof string !== 'string' || string.length === 0;
 };
