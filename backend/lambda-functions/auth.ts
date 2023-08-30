@@ -1,6 +1,7 @@
 import { CognitoIdentityProviderClient, SignUpCommand, SignUpCommandInput } from '@aws-sdk/client-cognito-identity-provider';
 import { RequestFunction } from "./types";
 import { ApiErrorResponse, ApiSuccessResponse, BadRequestError } from "./utils";
+import { randomUUID } from "crypto";
 
 const cognito = new CognitoIdentityProviderClient({ region: process.env.USER_POOL_REGION });
 
@@ -22,7 +23,9 @@ export const register: RequestFunction = async (event) => {
                 UserAttributes: [
                     { Name: "email", Value: email },
                     { Name: "name", Value: name },
-                ]
+                    { Name: "joinedOn", Value: Date.now() },
+                    { Name: "userID", Value: randomUUID() },
+                ],
             };
 
             const response = await cognito.send(new SignUpCommand(input));
