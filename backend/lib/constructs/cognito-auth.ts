@@ -21,6 +21,7 @@ export class CognitoAuth extends Construct {
             },
             customAttributes: {
                 'joinedOn': new cognito.DateTimeAttribute({ mutable: false }),
+                'userID': new cognito.StringAttribute({ mutable: false }),
             },
             passwordPolicy: {
                 minLength: 10,
