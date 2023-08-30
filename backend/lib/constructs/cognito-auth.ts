@@ -20,7 +20,7 @@ export class CognitoAuth extends Construct {
                 fullname: { required: true, mutable: true },
             },
             customAttributes: {
-                'joinedOn': new cognito.DateTimeAttribute(),
+                'joinedOn': new cognito.DateTimeAttribute({ mutable: false }),
             },
             passwordPolicy: {
                 minLength: 10,
