@@ -1,6 +1,5 @@
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
+import { LambdaNodeFunction } from './lambda-function';
 import { Construct } from 'constructs';
 import { AuthResponseProps } from './api-resource-props';
 
@@ -10,7 +9,7 @@ export class AuthApi extends Construct {
 
         /** API Gateway REST API root resource to handle authentication and registration functionality */
         const authApiRootResource = props.restApi.root.addResource('auth');
-                
+
         // Add a CORS preflight OPTIONS
         authApiRootResource.addCorsPreflight({
             allowOrigins: apiGateway.Cors.ALL_ORIGINS,
@@ -35,19 +34,10 @@ export class AuthApi extends Construct {
 
                 // Adding a POST method and a Lambda Integration
                 apiResource.addMethod('POST', new apiGateway.LambdaIntegration(
-                    new lambdaNode.NodejsFunction(
-                        this,
-                        resource.name.replace(/-([a-z])/g, (_, match) => match.toUpperCase()), // = Register / ChangePassword
-                        {
-                            entry: `./lambda-functions/auth.ts`,
-                            handler: resource.name.replace(/-([a-z])/g, (_, match) => match), // = Login / changeUsername
-                            runtime: lambda.Runtime.NODEJS_16_X,
-                            environment: {
-                                USER_POOL_ID: props.userPool.userPoolId,
-                                USER_POOL_CLIENT_ID: props.userPoolClientID,
-                                USER_POOL_REGION: props.userPoolRegion,
-                            },
-                        }
+                    new LambdaNodeFunction(this, resource.name.replace(/-([a-z])/g, (_, match) => match.toUpperCase()), // = Register / ChangePassword
+                        'auth',
+                        resource.name.replace(/-([a-z])/g, (_, match) => match), // = Login / changeUsername
+                        { USER_POOL_CLIENT_ID: props.userPoolClientID, USER_POOL_REGION: props.userPoolRegion, }
                     )
                 ));
             });
