@@ -36,7 +36,7 @@ export class AuthApi extends Construct {
                 apiResource.addMethod('POST', new apiGateway.LambdaIntegration(
                     new LambdaNodeFunction(this, resource.name.replace(/-([a-z])/g, (_, match) => match.toUpperCase()), // = Register / ChangePassword
                         'auth',
-                        resource.name.replace(/-([a-z])/g, (_, match) => match), // = Login / changeUsername
+                        resource.name.replace(/-([a-z])/g, (_, match) => match), // = login / changeUsername
                         { USER_POOL_CLIENT_ID: props.userPoolClientID, USER_POOL_REGION: props.userPoolRegion, }
                     )
                 ));
